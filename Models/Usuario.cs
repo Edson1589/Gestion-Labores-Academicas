@@ -39,7 +39,6 @@ namespace GestionLaboresAcademicas.Models
         [Display(Name = "Teléfono")]
         public string Telefono { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El nombre de usuario es obligatorio")]
         [StringLength(50)]
         [Display(Name = "Nombre de usuario")]
         public string NombreUsuario { get; set; } = string.Empty;
@@ -54,5 +53,25 @@ namespace GestionLaboresAcademicas.Models
 
         [Display(Name = "Fecha de registro")]
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        [Display(Name = "Estado de cuenta")]
+        public EstadoCuenta EstadoCuenta { get; set; } = EstadoCuenta.Habilitada;
+
+        [Required]
+        [StringLength(200)]
+        [Display(Name = "Contraseña temporal")]
+        public string PasswordTemporal { get; set; } = string.Empty;
+
+        [Display(Name = "Debe cambiar contraseña al primer inicio")]
+        public bool DebeCambiarPassword { get; set; } = true;
+
+        [StringLength(100)]
+        [Display(Name = "Creado por")]
+        public string? CreadoPor { get; set; }
+
+        [StringLength(150)]
+        [Display(Name = "Origen de registro")]
+        public string? OrigenRegistro { get; set; }
     }
 }
