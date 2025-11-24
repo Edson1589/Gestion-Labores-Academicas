@@ -14,7 +14,6 @@ namespace GestionLaboresAcademicas.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Índices únicos para cumplir criterio de aceptación (CI, Correo, NombreUsuario)
             modelBuilder.Entity<Usuario>()
                 .HasIndex(u => u.CI)
                 .IsUnique();
@@ -27,7 +26,6 @@ namespace GestionLaboresAcademicas.Data
                 .HasIndex(u => u.NombreUsuario)
                 .IsUnique();
 
-            // Seed de tipos de usuario (Director, Secretaria, Docente, Estudiante, etc.)
             modelBuilder.Entity<TipoUsuario>().HasData(
                 new TipoUsuario { Id = 1, Nombre = "Director" },
                 new TipoUsuario { Id = 2, Nombre = "Secretaria" },
