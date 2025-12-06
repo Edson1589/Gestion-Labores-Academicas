@@ -1,0 +1,54 @@
+﻿@model IEnumerable<GestionLaboresAcademicas.Models.SolicitudAprobacionRol>
+
+@{
+    ViewData["Title"] = "Aprobación de roles sensibles";
+}
+
+<h2>Aprobación de roles sensibles</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info mt-3">
+        No hay cuentas pendientes de aprobación.
+    </div>
+}
+else
+{
+    <div class="table-responsive mt-3">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Usuario</th>
+                    <th>Rol solicitado</th>
+                    <th>Estado</th>
+                    <th>Fecha solicitud</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td>@s.UsuarioSolicitado.Nombres @s.UsuarioSolicitado.Apellidos</td>
+                        <td>@s.RolSolicitado.Nombre</td>
+                        <td>@s.Estado</td>
+                        <td>@s.FechaSolicitud.ToLocalTime():g</td>
+                        <td>
+                            <form asp-action="Aprobar" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@s.Id" />
+                                <button type="submit" class="btn btn-sm btn-success">Aprobar</button>
+                            </form>
+
+                            <a asp-controller="AprobacionRoles"
+                               asp-action="Rechazar"
+                               asp-route-id="@s.Id"
+                               class="btn btn-sm btn-danger ms-1">
+                                Rechazar
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

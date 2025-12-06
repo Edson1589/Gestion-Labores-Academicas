@@ -1,0 +1,107 @@
+﻿@model IEnumerable<GestionLaboresAcademicas.Models.Usuario>
+
+@{
+    ViewData["Title"] = "Gestión de usuarios";
+    var termino = ViewBag.Termino as string;
+}
+
+<h2>Gestión de usuarios</h2>
+
+<div class="row mt-3">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                Registrar nuevo usuario
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Dar de alta Directores, Docentes, Estudiantes, Padres de familia, etc.
+                </p>
+                <a asp-action="Registrar" class="btn btn-primary">Registrar usuario</a>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header bg-warning">
+                Carga masiva de usuarios
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Importar muchos usuarios desde un archivo CSV al inicio de la gestión.
+                </p>
+                <a asp-action="CargaMasiva" class="btn btn-warning">
+                    Ir a carga masiva
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">
+                Buscar usuarios
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-2">
+                    <div class="col-md-9">
+                        <input type="text"
+                               name="termino"
+                               value="@termino"
+                               class="form-control"
+                               placeholder="Buscar por nombre, CI o correo" />
+                    </div>
+                    <div class="col-md-3 d-grid">
+                        <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+                    </div>
+                </form>
+
+                @if (Model != null && Model.Any())
+                {
+                    <div class="table-responsive mt-3">
+                        <table class="table table-sm table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>CI</th>
+                                    <th>Correo</th>
+                                    <th>Tipo</th>
+                                    <th>Estado</th>
+                                    <th style="width: 140px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var u in Model)
+                                {
+                                    <tr>
+                                        <td>@u.Nombres @u.Apellidos</td>
+                                        <td>@u.DocumentoCI</td>
+                                        <td>@u.Correo</td>
+                                        <td>@u.TipoUsuario</td>
+                                        <td>@u.EstadoCuenta</td>
+                                        <td>
+                                            <a asp-action="Editar" asp-route-id="@u.Id"
+                                               class="btn btn-sm btn-primary">Editar</a>
+                                            <a asp-action="Historial" asp-route-id="@u.Id"
+                                               class="btn btn-sm btn-outline-secondary ms-1">
+                                                Historial
+                                            </a>
+                                            <a asp-action="Resumen" asp-route-id="@u.Id"
+                                               class="btn btn-sm btn-outline-link ms-1">
+                                                Resumen
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else if (!string.IsNullOrWhiteSpace(termino))
+                {
+                    <div class="alert alert-info mt-3">
+                        No se encontraron usuarios para el criterio de búsqueda.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

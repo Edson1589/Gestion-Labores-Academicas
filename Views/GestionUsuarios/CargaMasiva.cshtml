@@ -1,0 +1,114 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.CargaMasivaUsuariosViewModel
+
+@{
+    ViewData["Title"] = "Carga masiva de usuarios";
+}
+
+<h2>Carga masiva de usuarios</h2>
+
+<div class="alert alert-info mt-3">
+    <p>
+        1. Descarga la plantilla CSV con las columnas requeridas.<br />
+        2. Completa los datos (un usuario por fila).<br />
+        3. Sube el archivo para validar formato y datos.<br />
+        4. Si todo es correcto, confirma la carga para crear los usuarios válidos.
+    </p>
+    <a asp-action="DescargarPlantillaCargaMasiva"
+       class="btn btn-sm btn-outline-primary">
+        Descargar plantilla CSV
+    </a>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        1) Subir archivo CSV
+    </div>
+    <div class="card-body">
+        <form asp-action="CargaMasiva" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label asp-for="Archivo" class="form-label"></label>
+                <input asp-for="Archivo" class="form-control" type="file" accept=".csv" />
+                <span asp-validation-for="Archivo" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Validar archivo</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Volver</a>
+        </form>
+    </div>
+</div>
+
+@if (Model.Resultados != null && Model.Resultados.Any())
+{
+    <div class="card mt-4">
+        <div class="card-header">
+            2) Resultado de validación previa
+        </div>
+        <div class="card-body">
+            <p>
+                <strong>Total filas:</strong> @Model.TotalRegistros<br />
+                <strong>Válidas:</strong> @Model.RegistrosValidos<br />
+                <strong>Con errores:</strong> @Model.RegistrosInvalidos
+            </p>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th># Línea</th>
+                            <th>Tipo</th>
+                            <th>Nombre</th>
+                            <th>CI</th>
+                            <th>Correo</th>
+                            <th>Estado validación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Resultados)
+                        {
+                            <tr class="@(r.EsValido ? "" : "table-danger")">
+                                <td>@r.NumeroLinea</td>
+                                <td>@r.TipoUsuario</td>
+                                <td>@($"{r.Nombres} {r.Apellidos}")</td>
+                                <td>@r.DocumentoCI</td>
+                                <td>@r.Correo</td>
+                                <td>@r.Mensaje</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.UsuariosCreados == null)
+            {
+                @if (Model.PuedeConfirmar)
+                {
+                    <hr />
+                    <form asp-action="ConfirmarCargaMasiva" method="post">
+                        <input asp-for="DatosValidosJson" type="hidden" />
+                        <button type="submit" class="btn btn-success">
+                            Confirmar carga de @Model.RegistrosValidos usuarios válidos
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-warning mt-3">
+                        No hay filas válidas para importar. Corrija los errores en el archivo y vuelva a intentar.
+                    </div>
+                }
+            }
+            else
+            {
+                <hr />
+                <div class="alert alert-success">
+                    <strong>Usuarios creados:</strong> @Model.UsuariosCreados<br />
+                    <strong>Usuarios no creados (errores en esta fase):</strong> @Model.UsuariosFallidos
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

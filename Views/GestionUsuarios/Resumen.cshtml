@@ -1,0 +1,114 @@
+﻿@model GestionLaboresAcademicas.Models.Usuario
+
+@{
+    ViewData["Title"] = "Usuario registrado";
+}
+
+<h2>Usuario registrado correctamente</h2>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Nombres @Model.Apellidos</h5>
+        <p class="card-text">
+            <strong>Tipo de usuario:</strong> @Model.TipoUsuario <br />
+            <strong>Documento/CI:</strong> @Model.DocumentoCI <br />
+            <strong>Correo:</strong> @Model.Correo <br />
+            <strong>Teléfono:</strong> @Model.Telefono <br />
+            <strong>Estado de cuenta:</strong> @Model.EstadoCuenta
+        </p>
+
+        @if (Model.TipoUsuario == "Estudiante")
+        {
+            <p>
+                <strong>Situación académica:</strong>
+                @if (Model.Curso != null)
+                {
+                    @Model.Curso.NombreDisplay
+                }
+                else if (Model.PendienteAsignacionCurso)
+                {
+                    @:Pendiente de asignación de curso
+                }
+                else
+                {
+                    @:Sin curso asignado
+                }
+            </p>
+        }
+
+        @if (Model.TipoUsuario == "Padre")
+        {
+            <p>
+                <strong>Vínculos con estudiantes:</strong>
+                @if (Model.VinculosComoPadre != null && Model.VinculosComoPadre.Any())
+                {
+                    <ul>
+                        @foreach (var v in Model.VinculosComoPadre)
+                        {
+                            <li>
+                                @v.Estudiante.Nombres @v.Estudiante.Apellidos
+                                (@v.Estudiante.DocumentoCI)
+                            </li>
+                        }
+                    </ul>
+                }
+                else if (Model.PendienteVinculoEstudiantes)
+                {
+                    @:Pendiente de vincular con estudiantes
+                }
+                else
+                {
+                    @:Sin vínculos registrados
+                }
+            </p>
+        }
+
+        @if (Model.TipoUsuario == "Docente")
+        {
+            <p>
+                <strong>Ítem / código interno:</strong> @Model.ItemDocente
+            </p>
+
+            <p>
+                <strong>Asignaturas:</strong>
+                @if (Model.Asignaturas != null && Model.Asignaturas.Any())
+                {
+                    <ul>
+                        @foreach (var a in Model.Asignaturas)
+                        {
+                            <li>
+                                @a.Nombre @if (!string.IsNullOrEmpty(a.Area)) {
+                                @($"({a.Area})")
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+            else if (Model.PendienteAsignarAsignaturas)
+            {
+                @:Pendiente de asignar materias
+            }
+            else
+            {
+                @:Sin asignaturas preasignadas
+            }
+            </p>
+        }
+        @if (Model.CredencialAcceso != null)
+{
+        <p>
+            <strong>Usuario de acceso:</strong> @Model.CredencialAcceso.Username <br />
+            @if (ViewBag.PasswordTemporal != null)
+            {
+                <strong>Contraseña temporal:</strong> @ViewBag.PasswordTemporal <br />
+                <small class="text-muted">
+                    Esta contraseña es temporal; el sistema exigirá cambiarla en el primer inicio de sesión.
+                </small>
+            }
+        </p>
+}
+
+        <a asp-action="Registrar" class="btn btn-primary">Registrar otro</a>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Volver a gestión de usuarios</a>
+    </div>
+</div>

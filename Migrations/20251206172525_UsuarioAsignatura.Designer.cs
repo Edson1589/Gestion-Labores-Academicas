@@ -3,6 +3,7 @@ using System;
 using GestionLaboresAcademicas.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GestionLaboresAcademicas.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251206172525_UsuarioAsignatura")]
+    partial class UsuarioAsignatura
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,32 +223,23 @@ namespace GestionLaboresAcademicas.Migrations
 
                     b.Property<string>("Accion")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.Property<int?>("ActorId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Detalle")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Origen")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<int?>("UsuarioAfectadoId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioId1")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -253,10 +247,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.HasIndex("ActorId");
 
                     b.HasIndex("UsuarioAfectadoId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("RegistrosAuditoriaUsuarios");
                 });
@@ -347,43 +337,6 @@ namespace GestionLaboresAcademicas.Migrations
                             Nombre = "Bibliotecario",
                             RequiereAprobacion = true
                         });
-                });
-
-            modelBuilder.Entity("GestionLaboresAcademicas.Models.SolicitudAprobacionRol", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime?>("FechaRespuesta")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime>("FechaSolicitud")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("MotivoRechazo")
-                        .HasColumnType("text");
-
-                    b.Property<int>("RolSolicitadoId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UsuarioSolicitadoId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RolSolicitadoId");
-
-                    b.HasIndex("UsuarioSolicitadoId");
-
-                    b.ToTable("SolicitudesAprobacionRoles");
                 });
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Usuario", b =>
@@ -527,45 +480,18 @@ namespace GestionLaboresAcademicas.Migrations
             modelBuilder.Entity("GestionLaboresAcademicas.Models.RegistroAuditoriaUsuario", b =>
                 {
                     b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Actor")
-                        .WithMany()
+                        .WithMany("AuditoriasComoActor")
                         .HasForeignKey("ActorId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioAfectado")
-                        .WithMany()
-                        .HasForeignKey("UsuarioAfectadoId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", null)
-                        .WithMany("AuditoriasComoActor")
-                        .HasForeignKey("UsuarioId");
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", null)
                         .WithMany("AuditoriasComoAfectado")
-                        .HasForeignKey("UsuarioId1");
+                        .HasForeignKey("UsuarioAfectadoId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Actor");
 
                     b.Navigation("UsuarioAfectado");
-                });
-
-            modelBuilder.Entity("GestionLaboresAcademicas.Models.SolicitudAprobacionRol", b =>
-                {
-                    b.HasOne("GestionLaboresAcademicas.Models.Rol", "RolSolicitado")
-                        .WithMany()
-                        .HasForeignKey("RolSolicitadoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioSolicitado")
-                        .WithMany("SolicitudesRol")
-                        .HasForeignKey("UsuarioSolicitadoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RolSolicitado");
-
-                    b.Navigation("UsuarioSolicitado");
                 });
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Usuario", b =>
@@ -621,8 +547,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("AuditoriasComoAfectado");
 
                     b.Navigation("CredencialAcceso");
-
-                    b.Navigation("SolicitudesRol");
 
                     b.Navigation("VinculosComoEstudiante");
 

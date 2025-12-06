@@ -3,6 +3,7 @@ using System;
 using GestionLaboresAcademicas.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GestionLaboresAcademicas.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251206163147_AddGestionUsuario")]
+    partial class AddGestionUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +24,6 @@ namespace GestionLaboresAcademicas.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("AsignaturaUsuario", b =>
-                {
-                    b.Property<int>("AsignaturasId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("DocentesId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("AsignaturasId", "DocentesId");
-
-                    b.HasIndex("DocentesId");
-
-                    b.ToTable("UsuarioAsignatura", (string)null);
-                });
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Asignatura", b =>
                 {
@@ -57,26 +45,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Asignaturas");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Area = "Ciencias Exactas",
-                            Nombre = "Matemática"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Area = "Comunicación",
-                            Nombre = "Lenguaje"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Area = "Ciencias Exactas",
-                            Nombre = "Física"
-                        });
                 });
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.CredencialAcceso", b =>
@@ -220,32 +188,23 @@ namespace GestionLaboresAcademicas.Migrations
 
                     b.Property<string>("Accion")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("text");
 
                     b.Property<int?>("ActorId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Detalle")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Origen")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<int?>("UsuarioAfectadoId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioId1")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -253,10 +212,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.HasIndex("ActorId");
 
                     b.HasIndex("UsuarioAfectadoId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("RegistrosAuditoriaUsuarios");
                 });
@@ -349,43 +304,6 @@ namespace GestionLaboresAcademicas.Migrations
                         });
                 });
 
-            modelBuilder.Entity("GestionLaboresAcademicas.Models.SolicitudAprobacionRol", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime?>("FechaRespuesta")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime>("FechaSolicitud")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("MotivoRechazo")
-                        .HasColumnType("text");
-
-                    b.Property<int>("RolSolicitadoId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UsuarioSolicitadoId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RolSolicitadoId");
-
-                    b.HasIndex("UsuarioSolicitadoId");
-
-                    b.ToTable("SolicitudesAprobacionRoles");
-                });
-
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -398,6 +316,9 @@ namespace GestionLaboresAcademicas.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("AsignaturaId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Correo")
                         .IsRequired()
@@ -418,28 +339,10 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Property<DateTime>("FechaNacimiento")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("ItemDocente")
-                        .HasColumnType("text");
-
                     b.Property<string>("Nombres")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<bool>("PendienteAsignacionCurso")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("PendienteAsignarAsignaturas")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("PendienteVinculoEstudiantes")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<int>("RolId")
                         .HasColumnType("integer");
@@ -455,6 +358,8 @@ namespace GestionLaboresAcademicas.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AsignaturaId");
+
                     b.HasIndex("Correo")
                         .IsUnique();
 
@@ -466,51 +371,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.HasIndex("RolId");
 
                     b.ToTable("Usuarios");
-                });
-
-            modelBuilder.Entity("GestionLaboresAcademicas.Models.VinculoPadreEstudiante", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("EsTutorLegal")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("EstudianteId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PadreId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Relacion")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EstudianteId");
-
-                    b.HasIndex("PadreId");
-
-                    b.ToTable("VinculosPadreEstudiante");
-                });
-
-            modelBuilder.Entity("AsignaturaUsuario", b =>
-                {
-                    b.HasOne("GestionLaboresAcademicas.Models.Asignatura", null)
-                        .WithMany()
-                        .HasForeignKey("AsignaturasId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("DocentesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.CredencialAcceso", b =>
@@ -527,49 +387,26 @@ namespace GestionLaboresAcademicas.Migrations
             modelBuilder.Entity("GestionLaboresAcademicas.Models.RegistroAuditoriaUsuario", b =>
                 {
                     b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Actor")
-                        .WithMany()
+                        .WithMany("AuditoriasComoActor")
                         .HasForeignKey("ActorId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioAfectado")
-                        .WithMany()
-                        .HasForeignKey("UsuarioAfectadoId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", null)
-                        .WithMany("AuditoriasComoActor")
-                        .HasForeignKey("UsuarioId");
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", null)
                         .WithMany("AuditoriasComoAfectado")
-                        .HasForeignKey("UsuarioId1");
+                        .HasForeignKey("UsuarioAfectadoId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Actor");
 
                     b.Navigation("UsuarioAfectado");
                 });
 
-            modelBuilder.Entity("GestionLaboresAcademicas.Models.SolicitudAprobacionRol", b =>
-                {
-                    b.HasOne("GestionLaboresAcademicas.Models.Rol", "RolSolicitado")
-                        .WithMany()
-                        .HasForeignKey("RolSolicitadoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioSolicitado")
-                        .WithMany("SolicitudesRol")
-                        .HasForeignKey("UsuarioSolicitadoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RolSolicitado");
-
-                    b.Navigation("UsuarioSolicitado");
-                });
-
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Usuario", b =>
                 {
+                    b.HasOne("GestionLaboresAcademicas.Models.Asignatura", null)
+                        .WithMany("Docentes")
+                        .HasForeignKey("AsignaturaId");
+
                     b.HasOne("GestionLaboresAcademicas.Models.Curso", "Curso")
                         .WithMany("Estudiantes")
                         .HasForeignKey("CursoId");
@@ -585,23 +422,9 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("Rol");
                 });
 
-            modelBuilder.Entity("GestionLaboresAcademicas.Models.VinculoPadreEstudiante", b =>
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.Asignatura", b =>
                 {
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Estudiante")
-                        .WithMany("VinculosComoEstudiante")
-                        .HasForeignKey("EstudianteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Padre")
-                        .WithMany("VinculosComoPadre")
-                        .HasForeignKey("PadreId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Estudiante");
-
-                    b.Navigation("Padre");
+                    b.Navigation("Docentes");
                 });
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Curso", b =>
@@ -621,12 +444,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("AuditoriasComoAfectado");
 
                     b.Navigation("CredencialAcceso");
-
-                    b.Navigation("SolicitudesRol");
-
-                    b.Navigation("VinculosComoEstudiante");
-
-                    b.Navigation("VinculosComoPadre");
                 });
 #pragma warning restore 612, 618
         }

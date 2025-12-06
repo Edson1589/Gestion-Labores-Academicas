@@ -1,77 +1,42 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace GestionLaboresAcademicas.Models
+﻿namespace GestionLaboresAcademicas.Models
 {
     public class Usuario
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "El nombre es obligatorio")]
-        [StringLength(100)]
-        [Display(Name = "Nombres")]
-        public string Nombres { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Los apellidos son obligatorios")]
-        [StringLength(100)]
-        [Display(Name = "Apellidos")]
-        public string Apellidos { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "El CI es obligatorio")]
-        [StringLength(20)]
-        [Display(Name = "CI / Documento")]
-        public string CI { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "La fecha de nacimiento es obligatoria")]
-        [DataType(DataType.Date)]
-        [Display(Name = "Fecha de nacimiento")]
+        public string Nombres { get; set; } = null!;
+        public string Apellidos { get; set; } = null!;
+        public string DocumentoCI { get; set; } = null!;
         public DateTime FechaNacimiento { get; set; }
 
-        [Required(ErrorMessage = "El correo es obligatorio")]
-        [EmailAddress(ErrorMessage = "El correo no tiene un formato válido")]
-        [StringLength(150)]
-        [Display(Name = "Correo electrónico")]
-        public string Correo { get; set; } = string.Empty;
+        public string Correo { get; set; } = null!;
+        public string Telefono { get; set; } = null!;
+        public string TipoUsuario { get; set; } = null!;
 
-        [Required(ErrorMessage = "El teléfono es obligatorio")]
-        [Phone(ErrorMessage = "El teléfono no tiene un formato válido")]
-        [StringLength(30)]
-        [Display(Name = "Teléfono")]
-        public string Telefono { get; set; } = string.Empty;
+        public string EstadoCuenta { get; set; } = "Habilitado";
 
-        [StringLength(50)]
-        [Display(Name = "Nombre de usuario")]
-        public string NombreUsuario { get; set; } = string.Empty;
+        public int RolId { get; set; }
+        public Rol Rol { get; set; } = null!;
+        public int? CursoId { get; set; }
+        public Curso? Curso { get; set; }
+        public bool PendienteAsignacionCurso { get; set; } = false;
+        public CredencialAcceso? CredencialAcceso { get; set; }
 
-        // Relación con TipoUsuario
-        [Required(ErrorMessage = "Debe seleccionar un tipo de usuario")]
-        [Display(Name = "Tipo de usuario")]
-        public int TipoUsuarioId { get; set; }
+        public ICollection<VinculoPadreEstudiante> VinculosComoPadre { get; set; }
+            = new List<VinculoPadreEstudiante>();
 
-        [ForeignKey(nameof(TipoUsuarioId))]
-        public TipoUsuario? TipoUsuario { get; set; }
+        public ICollection<VinculoPadreEstudiante> VinculosComoEstudiante { get; set; }
+            = new List<VinculoPadreEstudiante>();
+        public bool PendienteVinculoEstudiantes { get; set; } = false;
+        public string? ItemDocente { get; set; }
 
-        [Display(Name = "Fecha de registro")]
-        public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
+        public ICollection<Asignatura> Asignaturas { get; set; } = new List<Asignatura>();
 
-        [Required]
-        [Display(Name = "Estado de cuenta")]
-        public EstadoCuenta EstadoCuenta { get; set; } = EstadoCuenta.Habilitada;
+        public bool PendienteAsignarAsignaturas { get; set; } = false;
 
-        [Required]
-        [StringLength(200)]
-        [Display(Name = "Contraseña temporal")]
-        public string PasswordTemporal { get; set; } = string.Empty;
+        public ICollection<RegistroAuditoriaUsuario> AuditoriasComoAfectado { get; set; } = new List<RegistroAuditoriaUsuario>();
+        public ICollection<RegistroAuditoriaUsuario> AuditoriasComoActor { get; set; } = new List<RegistroAuditoriaUsuario>();
+        public ICollection<SolicitudAprobacionRol> SolicitudesRol { get; set; } = new List<SolicitudAprobacionRol>();
 
-        [Display(Name = "Debe cambiar contraseña al primer inicio")]
-        public bool DebeCambiarPassword { get; set; } = true;
-
-        [StringLength(100)]
-        [Display(Name = "Creado por")]
-        public string? CreadoPor { get; set; }
-
-        [StringLength(150)]
-        [Display(Name = "Origen de registro")]
-        public string? OrigenRegistro { get; set; }
     }
 }

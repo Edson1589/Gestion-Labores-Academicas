@@ -1,0 +1,134 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.EditarUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Editar usuario";
+}
+
+<h2>Editar usuario</h2>
+
+<div class="card mt-3">
+    <div class="card-header">
+        Datos del usuario
+    </div>
+    <div class="card-body">
+        <form asp-action="Editar" method="post">
+            <input asp-for="Id" type="hidden" />
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label asp-for="TipoUsuario" class="form-label"></label>
+                    <input asp-for="TipoUsuario" class="form-control" readonly />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="EstadoCuenta" class="form-label"></label>
+                    <input asp-for="EstadoCuenta" class="form-control" readonly />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Nombres" class="form-label"></label>
+                    <input asp-for="Nombres" class="form-control" />
+                    <span asp-validation-for="Nombres" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Apellidos" class="form-label"></label>
+                    <input asp-for="Apellidos" class="form-control" />
+                    <span asp-validation-for="Apellidos" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="DocumentoCI" class="form-label"></label>
+                    <input asp-for="DocumentoCI" class="form-control" />
+                    <span asp-validation-for="DocumentoCI" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="FechaNacimiento" class="form-label"></label>
+                    <input asp-for="FechaNacimiento" class="form-control" type="date" />
+                    <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Telefono" class="form-label"></label>
+                    <input asp-for="Telefono" class="form-control" />
+                    <span asp-validation-for="Telefono" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Correo" class="form-label"></label>
+                <input asp-for="Correo" class="form-control" />
+                <span asp-validation-for="Correo" class="text-danger"></span>
+            </div>
+
+            <div id="bloqueEstudiante" class="border rounded p-3 mb-3" style="display:none;">
+                <h5>Datos académicos (Estudiante)</h5>
+                <div class="mb-3">
+                    <label asp-for="CursoId" class="form-label"></label>
+                    <select asp-for="CursoId" asp-items="Model.Cursos" class="form-select">
+                        <option value="">-- Sin curso asignado --</option>
+                    </select>
+                    <span asp-validation-for="CursoId" class="text-danger"></span>
+                </div>
+                @if (Model.PendienteAsignacionCurso)
+                {
+                    <div class="alert alert-warning py-1">
+                        Actualmente el estudiante está marcado como <strong>pendiente de asignación de curso</strong>.
+                    </div>
+                }
+            </div>
+
+            <div id="bloqueDocente" class="border rounded p-3 mb-3" style="display:none;">
+                <h5>Datos académicos (Docente)</h5>
+
+                <div class="mb-3">
+                    <label asp-for="ItemDocente" class="form-label"></label>
+                    <input asp-for="ItemDocente" class="form-control" />
+                    <span asp-validation-for="ItemDocente" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="AsignaturasSeleccionadas" class="form-label"></label>
+                    <select asp-for="AsignaturasSeleccionadas"
+                            asp-items="Model.Asignaturas"
+                            class="form-select"
+                            multiple size="5">
+                    </select>
+                    <span asp-validation-for="AsignaturasSeleccionadas" class="text-danger"></span>
+                </div>
+
+                @if (Model.PendienteAsignarAsignaturas)
+                {
+                    <div class="alert alert-warning py-1">
+                        Actualmente el docente está marcado como <strong>pendiente de asignar materias</strong>.
+                    </div>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-success">Guardar cambios</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Volver</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function actualizarBloquesEditar() {
+            var tipo = "@Model.TipoUsuario";
+
+            var bloqueEstudiante = document.getElementById('bloqueEstudiante');
+            var bloqueDocente = document.getElementById('bloqueDocente');
+
+            if (bloqueEstudiante) {
+                bloqueEstudiante.style.display = (tipo === 'Estudiante') ? 'block' : 'none';
+            }
+            if (bloqueDocente) {
+                bloqueDocente.style.display = (tipo === 'Docente') ? 'block' : 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', actualizarBloquesEditar);
+    </script>
+}
