@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Panel del Director";
+}
+
+<h2 class="mb-3">Panel del Director</h2>
+<p class="text-muted">Bienvenido, @User.Identity?.Name</p>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card border-warning h-100">
+            <div class="card-header bg-warning text-dark">
+                Aprobación de cuentas
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Revisar y aprobar/rechazar cuentas con roles sensibles
+                    (Director, Regente, Bibliotecario, etc.).
+                </p>
+                <a asp-controller="AprobacionRoles"
+                   asp-action="Index"
+                   class="btn btn-warning">
+                    Ver solicitudes pendientes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-primary h-100">
+            <div class="card-header bg-primary text-white">
+                Estadísticas académicas globales
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Acceder al módulo de Estadísticas Académicas con filtros a nivel de institución
+                    y gestión/periodo para ver indicadores globales y tomar decisiones estratégicas.
+                </p>
+                <a asp-controller="Estadisticas"
+                   asp-action="Index"
+                   class="btn btn-primary">
+                    Ver estadísticas globales
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-secondary h-100">
+            <div class="card-header bg-secondary text-white">
+                Gestión de periodos
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    (Opcional) Administración de periodos académicos, cierres de gestión, etc.
+                    Puedes enlazar aquí si tienes un módulo de PeriodosAcadémicos.
+                </p>
+                <a asp-controller="PeriodosAcademicos"
+                   asp-action="Index"
+                   class="btn btn-outline-light">
+                    Gestionar periodos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,38 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.RechazarSolicitudRolViewModel
+
+@{
+    ViewData["Title"] = "Rechazar solicitud de rol";
+}
+
+<h2>Rechazar solicitud de rol</h2>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+        <p>
+            ¿Seguro que deseas rechazar la solicitud de rol
+            <strong>@Model.RolNombre</strong> para el usuario
+            <strong>@Model.UsuarioNombre</strong>?
+        </p>
+
+        <form asp-controller="AprobacionRoles"
+              asp-action="Rechazar"
+              method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Motivo" class="form-label"></label>
+                <textarea asp-for="Motivo" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Motivo" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-danger">Confirmar rechazo</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

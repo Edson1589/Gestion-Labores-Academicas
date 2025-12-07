@@ -1,0 +1,246 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.RegistrarUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Registrar usuario";
+}
+
+<h2>Registrar usuario</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mt-3">
+            <div class="card-header bg-primary text-white">
+                Datos del nuevo usuario
+            </div>
+            <div class="card-body">
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                {
+                    <div class="alert alert-danger">
+                        <strong>Hay errores en el formulario:</strong>
+                        <ul>
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <form asp-action="Registrar" method="post">
+                    <div class="mb-3">
+                        <label asp-for="TipoUsuario" class="form-label"></label>
+                        <select asp-for="TipoUsuario" asp-items="Model.TiposUsuario" class="form-select" id="tipoUsuarioSelect">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span asp-validation-for="TipoUsuario" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Nombres" class="form-label"></label>
+                            <input asp-for="Nombres" class="form-control" />
+                            <span asp-validation-for="Nombres" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Apellidos" class="form-label"></label>
+                            <input asp-for="Apellidos" class="form-control" />
+                            <span asp-validation-for="Apellidos" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="DocumentoCI" class="form-label"></label>
+                            <input asp-for="DocumentoCI" class="form-control" />
+                            <span asp-validation-for="DocumentoCI" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="FechaNacimiento" class="form-label"></label>
+                            <input asp-for="FechaNacimiento" class="form-control" type="date" />
+                            <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Telefono" class="form-label"></label>
+                            <input asp-for="Telefono" class="form-control" />
+                            <span asp-validation-for="Telefono" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Correo" class="form-label"></label>
+                        <input asp-for="Correo" class="form-control" />
+                        <span asp-validation-for="Correo" class="text-danger"></span>
+                    </div>
+
+                    <div id="bloqueEstudiante" class="border rounded p-3 mb-3" style="display:none;">
+                        <h5>Datos académicos del estudiante</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="CursoId" class="form-label"></label>
+                            <select asp-for="CursoId" asp-items="Model.Cursos" class="form-select">
+                                <option value="">-- Seleccione curso / paralelo --</option>
+                            </select>
+                            <span asp-validation-for="CursoId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check mb-1">
+                            <input asp-for="GuardarComoPendienteCurso" class="form-check-input" />
+                            <label asp-for="GuardarComoPendienteCurso" class="form-check-label"></label>
+                        </div>
+                        <small class="text-muted">
+                            Si el curso aún no está configurado o la gestión no está activa,
+                            puede marcar esta opción para registrar al estudiante como "pendiente de asignación de curso".
+                        </small>
+                    </div>
+
+                    <div id="bloquePadre" class="border rounded p-3 mb-3" style="display:none;">
+                        <h5>Vínculo con estudiantes (hijos)</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="BuscarNombreOCI" class="form-label"></label>
+                                <input asp-for="BuscarNombreOCI" class="form-control" />
+                                <span asp-validation-for="BuscarNombreOCI" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="BuscarCursoId" class="form-label"></label>
+                                <select asp-for="BuscarCursoId" asp-items="Model.Cursos" class="form-select">
+                                    <option value="">-- Cualquier curso --</option>
+                                </select>
+                                <span asp-validation-for="BuscarCursoId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit"
+                                        name="accion"
+                                        value="buscarEstudiantes"
+                                        class="btn btn-outline-primary w-100">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+
+                        @if (Model.EstudiantesDisponibles != null && Model.EstudiantesDisponibles.Any())
+                        {
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-bordered align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Seleccionar</th>
+                                            <th>Nombre</th>
+                                            <th>CI</th>
+                                            <th>Curso</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.EstudiantesDisponibles.Count; i++)
+                                        {
+                                            <tr>
+                                                <td class="text-center">
+                                                    <input asp-for="EstudiantesDisponibles[@i].Seleccionado" class="form-check-input" />
+                                                    <input asp-for="EstudiantesDisponibles[@i].Id" type="hidden" />
+                                                    <input asp-for="EstudiantesDisponibles[@i].NombreCompleto" type="hidden" />
+                                                    <input asp-for="EstudiantesDisponibles[@i].DocumentoCI" type="hidden" />
+                                                    <input asp-for="EstudiantesDisponibles[@i].CursoNombre" type="hidden" />
+                                                </td>
+                                                <td>@Model.EstudiantesDisponibles[i].NombreCompleto</td>
+                                                <td>@Model.EstudiantesDisponibles[i].DocumentoCI</td>
+                                                <td>@Model.EstudiantesDisponibles[i].CursoNombre</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(Model.BuscarNombreOCI) || Model.BuscarCursoId.HasValue)
+                        {
+                            <div class="alert alert-info">
+                                No se encontraron estudiantes con los criterios de búsqueda.
+                            </div>
+                        }
+
+                        <div class="form-check mb-1">
+                            <input asp-for="GuardarPadreSinVinculo" class="form-check-input" />
+                            <label asp-for="GuardarPadreSinVinculo" class="form-check-label"></label>
+                        </div>
+                        <small class="text-muted">
+                            Si todavía no tiene registrado a sus hijos en el sistema, puede marcar esta opción
+                            para dejar al padre de familia como "pendiente de vincular".
+                        </small>
+                    </div>
+
+                    <div id="bloqueDocente" class="border rounded p-3 mb-3" style="display:none;">
+                        <h5>Datos académicos del docente</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="ItemDocente" class="form-label"></label>
+                            <input asp-for="ItemDocente" class="form-control" />
+                            <span asp-validation-for="ItemDocente" class="text-danger"></span>
+                            <small class="text-muted">
+                                Código interno, ítem o registro del docente en la institución.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AsignaturasSeleccionadas" class="form-label"></label>
+                            <select asp-for="AsignaturasSeleccionadas"
+                                    asp-items="Model.Asignaturas"
+                                    class="form-select"
+                                    multiple size="5">
+                            </select>
+                            <span asp-validation-for="AsignaturasSeleccionadas" class="text-danger"></span>
+                            <small class="text-muted">
+                                Puede seleccionar una o varias asignaturas. Este campo es opcional;
+                                si no selecciona ninguna, el docente quedará como
+                                <strong>pendiente de asignar materias</strong>.
+                            </small>
+                        </div>
+                    </div>
+
+                    <button type="submit" name="accion" value="guardar" class="btn btn-success">Guardar</button>
+                    <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function actualizarBloquesPorTipoUsuario() {
+            var select = document.getElementById('tipoUsuarioSelect');
+            if (!select) return;
+
+            var tipo = select.value;
+
+            var bloqueEstudiante = document.getElementById('bloqueEstudiante');
+            var bloquePadre = document.getElementById('bloquePadre');
+            var bloqueDocente = document.getElementById('bloqueDocente');
+
+            if (bloqueEstudiante) {
+                bloqueEstudiante.style.display = (tipo === 'Estudiante') ? 'block' : 'none';
+            }
+            if (bloquePadre) {
+                bloquePadre.style.display = (tipo === 'Padre') ? 'block' : 'none';
+            }
+            if (bloqueDocente) {
+                bloqueDocente.style.display = (tipo === 'Docente') ? 'block' : 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var select = document.getElementById('tipoUsuarioSelect');
+            if (select) {
+                select.addEventListener('change', actualizarBloquesPorTipoUsuario);
+                actualizarBloquesPorTipoUsuario();
+            }
+        });
+    </script>
+}
+
+

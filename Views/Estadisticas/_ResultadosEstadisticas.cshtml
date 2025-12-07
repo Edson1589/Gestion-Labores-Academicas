@@ -1,0 +1,165 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.EstadisticasFiltroViewModel
+@if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+{
+    <div class="text-danger mb-2">
+        @Html.ValidationSummary(excludePropertyErrors: true)
+    </div>
+}
+
+@if (Model.Reporte != null && Model.TotalRegistros > 0)
+{
+    <h4>Resultados (@Model.TotalRegistros registros)</h4>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="table-responsive">
+                <button type="submit"
+                        class="btn btn-outline-secondary btn-sm"
+                        form="form-filtros"
+                        name="accion"
+                        value="pdf"
+                        formaction="@Url.Action("ExportarPdf", "Estadisticas")"
+                        formmethod="post">
+                    Exportar PDF
+                </button>
+                <br /><br />
+                <table class="table table-striped table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>
+                                <a href="#" class="sort-link" data-column="Grupo">
+                                    Grupo (Curso)
+                                    @if (Model.OrdenarPor == "Grupo")
+                                    {
+                                        <span>@(Model.DireccionOrden == "asc" ? "▲" : "▼")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>Detalle (Materia / Docente)</th>
+                            <th>
+                                <a href="#" class="sort-link" data-column="Indicador">
+                                    Indicador
+                                    @if (Model.OrdenarPor == "Indicador")
+                                    {
+                                        <span>@(Model.DireccionOrden == "asc" ? "▲" : "▼")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="#" class="sort-link" data-column="Tipo">
+                                    Tipo
+                                    @if (Model.OrdenarPor == "Tipo")
+                                    {
+                                        <span>@(Model.DireccionOrden == "asc" ? "▲" : "▼")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th class="text-end">
+                                <a href="#" class="sort-link" data-column="Valor">
+                                    Valor
+                                    @if (Model.OrdenarPor == "Valor")
+                                    {
+                                        <span>@(Model.DireccionOrden == "asc" ? "▲" : "▼")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>Unidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ind in Model.IndicadoresPaginados)
+                        {
+                            <tr>
+                                <td>@ind.ClaveAgrupacion1</td>
+                                <td>@ind.ClaveAgrupacion2</td>
+                                <td>@ind.Nombre</td>
+                                <td>@ind.Tipo</td>
+                                <td class="text-end">@ind.Valor</td>
+                                <td>@ind.Unidad</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.TotalPaginas > 1)
+            {
+                <nav aria-label="Paginación">
+                    <ul class="pagination">
+                        <li class="page-item @(Model.Pagina <= 1 ? "disabled" : "")">
+                            <a class="page-link page-link-nav" href="#" data-page="@(Model.Pagina - 1)">Anterior</a>
+                        </li>
+
+                        @for (int p = 1; p <= Model.TotalPaginas; p++)
+                        {
+                            <li class="page-item @(p == Model.Pagina ? "active" : "")">
+                                <a class="page-link page-link-nav" href="#" data-page="@p">@p</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(Model.Pagina >= Model.TotalPaginas ? "disabled" : "")">
+                            <a class="page-link page-link-nav" href="#" data-page="@(Model.Pagina + 1)">Siguiente</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+            @if (Model.TieneTotales)
+            {
+                <tfoot class="table-secondary">
+                    @foreach (var total in Model.TotalesIndicadores)
+                    {
+                        <tr>
+                            <td colspan="2"><strong>Total / Resumen</strong></td>
+                            <td>@total.Nombre</td>
+                            <td>@total.Tipo</td>
+                            <td class="text-end">@total.Valor</td>
+                            <td>@total.Unidad</td>
+                        </tr>
+                    }
+                </tfoot>
+            }
+        </div>
+    </div>
+
+    @if (Model.HayDatosGraficos)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center mb-3">
+                    <div class="me-3">
+                        <label class="form-label mb-0 me-2">Tipo de gráfico:</label>
+                        <select id="tipoGrafico" class="form-select form-select-sm d-inline-block" style="width:auto;">
+                            <option value="barras">Barras</option>
+                            <option value="lineas">Líneas</option>
+                            <option value="pastel">Pastel</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label mb-0 me-2">Indicador:</label>
+                        <select id="tipoIndicadorGrafico" class="form-select form-select-sm d-inline-block" style="width:auto;">
+                            <option value="PromocionReprobacion">Promoción/Reprobación</option>
+                            <option value="Promedios">Promedios</option>
+                            <option value="Asistencia">Asistencia</option>
+                            <option value="Desercion">Deserción</option>
+                            <option value="RendimientoPorCurso">RendimientoPorCurso</option>
+                            <option value="RendimientoPorMateria">RendimientoPorMateria</option>
+                            <option value="RendimientoPorDocente">RendimientoPorDocente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="chartMessage" class="text-muted mb-2"></div>
+                <canvas id="estadisticasChart" style="max-height:400px;"></canvas>
+            </div>
+        </div>
+    }
+
+    <textarea id="indicadores-json" hidden>@(Model.IndicadoresJson ?? "[]")</textarea>
+}
+else if (Model.Reporte != null)
+{
+    <div class="alert alert-warning">
+        No se encontraron indicadores para los filtros seleccionados.
+    </div>
+}
