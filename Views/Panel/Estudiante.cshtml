@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "Panel del Estudiante";
+}
+
+<h2 class="mb-3">Panel del Estudiante</h2>
+<p class="text-muted">Bienvenido, @User.Identity?.Name</p>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card border-primary h-100">
+            <div class="card-header bg-primary text-white">Mi rendimiento</div>
+            <div class="card-body">
+                <p class="card-text">
+                    Ver estadísticas agregadas de tu curso (promedios, asistencia, promoción/reprobación),
+                    sin mostrar nombres de otros estudiantes.
+                </p>
+                <a asp-controller="Estadisticas"
+                   asp-action="Index"
+                   class="btn btn-light">
+                    Ver estadísticas de mi curso
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

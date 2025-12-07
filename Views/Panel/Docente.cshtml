@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Panel del Docente";
+}
+
+<h2 class="mb-3">Panel del Docente</h2>
+<p class="text-muted">Bienvenido, @User.Identity?.Name</p>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card border-success h-100">
+            <div class="card-header bg-success text-white">Mis cursos y materias</div>
+            <div class="card-body">
+                <p class="card-text">
+                    Consultar rendimiento, asistencia y promedios únicamente de tus cursos
+                    y materias asignadas (EST-HU2, EST-HU3).
+                </p>
+                <a asp-controller="Estadisticas"
+                   asp-action="Index"
+                   class="btn btn-light">
+                    Ver estadísticas de mis cursos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-secondary h-100">
+            <div class="card-header bg-secondary text-white">Apoyo para planificación</div>
+            <div class="card-body">
+                <p class="card-text">
+                    Utiliza los indicadores para ajustar tu planificación, detectar dificultades
+                    por materia y curso, y preparar refuerzos.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

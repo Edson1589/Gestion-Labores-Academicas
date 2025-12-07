@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GestionLaboresAcademicas.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251206172525_UsuarioAsignatura")]
-    partial class UsuarioAsignatura
+    [Migration("20251207004344_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -166,6 +166,141 @@ namespace GestionLaboresAcademicas.Migrations
                     b.ToTable("Cursos");
                 });
 
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.DatosAcademicos.DatoAcademico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AsignaturaId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CursoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EstudianteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PeriodoAcademicoId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TipoDato")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("character varying(21)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AsignaturaId");
+
+                    b.HasIndex("CursoId");
+
+                    b.HasIndex("EstudianteId");
+
+                    b.HasIndex("PeriodoAcademicoId");
+
+                    b.ToTable("DatosAcademicos");
+
+                    b.HasDiscriminator<string>("TipoDato").HasValue("DatoAcademico");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.Estadisticas.BitacoraConsulta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("Exito")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("FechaHora")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("FiltrosJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<string>("MensajeError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("TiposIndicador")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("BitacorasConsulta");
+                });
+
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.PeriodoAcademico", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Gestion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("NombrePeriodo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PeriodosAcademicos");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Estado = "Activo",
+                            FechaFin = new DateTime(2025, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            FechaInicio = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Gestion = "Gestión 2025",
+                            NombrePeriodo = "Gestión anual 2025"
+                        });
+                });
+
             modelBuilder.Entity("GestionLaboresAcademicas.Models.PoliticaSeguridad", b =>
                 {
                     b.Property<int>("Id")
@@ -223,23 +358,32 @@ namespace GestionLaboresAcademicas.Migrations
 
                     b.Property<string>("Accion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int?>("ActorId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Detalle")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Origen")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("UsuarioAfectadoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("UsuarioId1")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -247,6 +391,10 @@ namespace GestionLaboresAcademicas.Migrations
                     b.HasIndex("ActorId");
 
                     b.HasIndex("UsuarioAfectadoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("RegistrosAuditoriaUsuarios");
                 });
@@ -337,6 +485,43 @@ namespace GestionLaboresAcademicas.Migrations
                             Nombre = "Bibliotecario",
                             RequiereAprobacion = true
                         });
+                });
+
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.SolicitudAprobacionRol", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("FechaRespuesta")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("FechaSolicitud")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("MotivoRechazo")
+                        .HasColumnType("text");
+
+                    b.Property<int>("RolSolicitadoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsuarioSolicitadoId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RolSolicitadoId");
+
+                    b.HasIndex("UsuarioSolicitadoId");
+
+                    b.ToTable("SolicitudesAprobacionRoles");
                 });
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Usuario", b =>
@@ -451,6 +636,90 @@ namespace GestionLaboresAcademicas.Migrations
                     b.ToTable("VinculosPadreEstudiante");
                 });
 
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.DatosAcademicos.Asistencia", b =>
+                {
+                    b.HasBaseType("GestionLaboresAcademicas.Models.DatosAcademicos.DatoAcademico");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.ToTable("DatosAcademicos", t =>
+                        {
+                            t.Property("Fecha")
+                                .HasColumnName("Asistencia_Fecha");
+                        });
+
+                    b.HasDiscriminator().HasValue("Asistencia");
+                });
+
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.DatosAcademicos.Calificacion", b =>
+                {
+                    b.HasBaseType("GestionLaboresAcademicas.Models.DatosAcademicos.DatoAcademico");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<decimal>("Nota")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("TipoEvaluacion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasDiscriminator().HasValue("Calificacion");
+                });
+
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.DatosAcademicos.Matricula", b =>
+                {
+                    b.HasBaseType("GestionLaboresAcademicas.Models.DatosAcademicos.DatoAcademico");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("FechaInscripcion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.ToTable("DatosAcademicos", t =>
+                        {
+                            t.Property("Estado")
+                                .HasColumnName("Matricula_Estado");
+                        });
+
+                    b.HasDiscriminator().HasValue("Matricula");
+                });
+
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.DatosAcademicos.PrestamoBiblioteca", b =>
+                {
+                    b.HasBaseType("GestionLaboresAcademicas.Models.DatosAcademicos.DatoAcademico");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("FechaDevolucion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime>("FechaPrestamo")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.ToTable("DatosAcademicos", t =>
+                        {
+                            t.Property("Estado")
+                                .HasColumnName("PrestamoBiblioteca_Estado");
+                        });
+
+                    b.HasDiscriminator().HasValue("PrestamoBiblioteca");
+                });
+
             modelBuilder.Entity("AsignaturaUsuario", b =>
                 {
                     b.HasOne("GestionLaboresAcademicas.Models.Asignatura", null)
@@ -477,21 +746,94 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.DatosAcademicos.DatoAcademico", b =>
+                {
+                    b.HasOne("GestionLaboresAcademicas.Models.Asignatura", "Asignatura")
+                        .WithMany()
+                        .HasForeignKey("AsignaturaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GestionLaboresAcademicas.Models.Curso", "Curso")
+                        .WithMany()
+                        .HasForeignKey("CursoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Estudiante")
+                        .WithMany()
+                        .HasForeignKey("EstudianteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GestionLaboresAcademicas.Models.PeriodoAcademico", "PeriodoAcademico")
+                        .WithMany("DatosAcademicos")
+                        .HasForeignKey("PeriodoAcademicoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asignatura");
+
+                    b.Navigation("Curso");
+
+                    b.Navigation("Estudiante");
+
+                    b.Navigation("PeriodoAcademico");
+                });
+
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.Estadisticas.BitacoraConsulta", b =>
+                {
+                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("GestionLaboresAcademicas.Models.RegistroAuditoriaUsuario", b =>
                 {
                     b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Actor")
-                        .WithMany("AuditoriasComoActor")
+                        .WithMany()
                         .HasForeignKey("ActorId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioAfectado")
-                        .WithMany("AuditoriasComoAfectado")
+                        .WithMany()
                         .HasForeignKey("UsuarioAfectadoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", null)
+                        .WithMany("AuditoriasComoActor")
+                        .HasForeignKey("UsuarioId");
+
+                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", null)
+                        .WithMany("AuditoriasComoAfectado")
+                        .HasForeignKey("UsuarioId1");
 
                     b.Navigation("Actor");
 
                     b.Navigation("UsuarioAfectado");
+                });
+
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.SolicitudAprobacionRol", b =>
+                {
+                    b.HasOne("GestionLaboresAcademicas.Models.Rol", "RolSolicitado")
+                        .WithMany()
+                        .HasForeignKey("RolSolicitadoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioSolicitado")
+                        .WithMany("SolicitudesRol")
+                        .HasForeignKey("UsuarioSolicitadoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RolSolicitado");
+
+                    b.Navigation("UsuarioSolicitado");
                 });
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Usuario", b =>
@@ -535,6 +877,11 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("Estudiantes");
                 });
 
+            modelBuilder.Entity("GestionLaboresAcademicas.Models.PeriodoAcademico", b =>
+                {
+                    b.Navigation("DatosAcademicos");
+                });
+
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Rol", b =>
                 {
                     b.Navigation("Usuarios");
@@ -547,6 +894,8 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("AuditoriasComoAfectado");
 
                     b.Navigation("CredencialAcceso");
+
+                    b.Navigation("SolicitudesRol");
 
                     b.Navigation("VinculosComoEstudiante");
 

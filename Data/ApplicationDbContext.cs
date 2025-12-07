@@ -1,4 +1,6 @@
 ﻿using GestionLaboresAcademicas.Models;
+using GestionLaboresAcademicas.Models.DatosAcademicos;
+using GestionLaboresAcademicas.Models.Estadisticas;
 using Microsoft.EntityFrameworkCore;
 
 namespace GestionLaboresAcademicas.Data
@@ -16,6 +18,16 @@ namespace GestionLaboresAcademicas.Data
         public DbSet<Asignatura> Asignaturas => Set<Asignatura>();
         public DbSet<VinculoPadreEstudiante> VinculosPadreEstudiante => Set<VinculoPadreEstudiante>();
         public DbSet<SolicitudAprobacionRol> SolicitudesAprobacionRoles => Set<SolicitudAprobacionRol>();
+        public DbSet<PeriodoAcademico> PeriodosAcademicos => Set<PeriodoAcademico>();
+
+        public DbSet<DatoAcademico> DatosAcademicos => Set<DatoAcademico>();
+        public DbSet<Calificacion> Calificaciones => Set<Calificacion>();
+        public DbSet<Asistencia> Asistencias => Set<Asistencia>();
+        public DbSet<Matricula> Matriculas => Set<Matricula>();
+        public DbSet<PrestamoBiblioteca> PrestamosBiblioteca => Set<PrestamoBiblioteca>();
+
+        public DbSet<BitacoraConsulta> BitacorasConsulta => Set<BitacoraConsulta>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -159,6 +171,116 @@ namespace GestionLaboresAcademicas.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<PeriodoAcademico>(entity =>
+            {
+                entity.Property(p => p.Gestion)
+                      .HasMaxLength(50)
+                      .IsRequired();
+
+                entity.Property(p => p.NombrePeriodo)
+                      .HasMaxLength(100)
+                      .IsRequired();
+
+                entity.Property(p => p.Estado)
+                      .HasMaxLength(20)
+                      .IsRequired();
+            });
+
+            modelBuilder.Entity<DatoAcademico>(entity =>
+            {
+                entity.HasDiscriminator<string>("TipoDato")
+                      .HasValue<Calificacion>("Calificacion")
+                      .HasValue<Asistencia>("Asistencia")
+                      .HasValue<Matricula>("Matricula")
+                      .HasValue<PrestamoBiblioteca>("PrestamoBiblioteca");
+
+                entity.HasOne(d => d.PeriodoAcademico)
+                      .WithMany(p => p.DatosAcademicos)
+                      .HasForeignKey(d => d.PeriodoAcademicoId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.Curso)
+                      .WithMany()
+                      .HasForeignKey(d => d.CursoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(d => d.Asignatura)
+                      .WithMany()
+                      .HasForeignKey(d => d.AsignaturaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(d => d.Estudiante)
+                      .WithMany()
+                      .HasForeignKey(d => d.EstudianteId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Calificacion>(entity =>
+            {
+                entity.Property(c => c.TipoEvaluacion)
+                      .HasMaxLength(50)
+                      .IsRequired();
+            });
+
+            modelBuilder.Entity<Asistencia>(entity =>
+            {
+                entity.Property(a => a.Estado)
+                      .HasMaxLength(20)
+                      .IsRequired();
+            });
+
+            modelBuilder.Entity<Matricula>(entity =>
+            {
+                entity.Property(m => m.Estado)
+                      .HasMaxLength(20)
+                      .IsRequired();
+            });
+
+            modelBuilder.Entity<PrestamoBiblioteca>(entity =>
+            {
+                entity.Property(p => p.Estado)
+                      .HasMaxLength(20)
+                      .IsRequired();
+            });
+
+            modelBuilder.Entity<BitacoraConsulta>(entity =>
+            {
+                entity.Property(b => b.Accion)
+                      .HasMaxLength(50)
+                      .IsRequired();
+
+                entity.Property(b => b.Rol)
+                      .HasMaxLength(50)
+                      .IsRequired();
+
+                entity.Property(b => b.FiltrosJson)
+                      .HasMaxLength(4000)
+                      .IsRequired();
+
+                entity.Property(b => b.TiposIndicador)
+                      .HasMaxLength(200)
+                      .IsRequired();
+
+                entity.Property(b => b.MensajeError)
+                      .HasMaxLength(1000);
+
+                entity.HasOne(b => b.Usuario)
+                      .WithMany()
+                      .HasForeignKey(b => b.UsuarioId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PeriodoAcademico>().HasData(
+                new PeriodoAcademico
+                {
+                    Id = 1,
+                    Gestion = "Gestión 2025",
+                    NombrePeriodo = "Gestión anual 2025",
+                    FechaInicio = new DateTime(2025, 1, 1),
+                    FechaFin = new DateTime(2025, 12, 31),
+                    Estado = "Activo"
+                }
+            );
         }
     }
 }

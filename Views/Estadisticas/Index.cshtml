@@ -1,0 +1,440 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.EstadisticasFiltroViewModel
+
+@{
+    ViewData["Title"] = "Estadísticas académicas";
+}
+
+<h2 class="mb-3">Estadísticas académicas</h2>
+
+@if (Model.EsVistaEstudianteOPadre)
+{
+    <div class="alert alert-info">
+        Esta vista muestra únicamente estadísticas <strong>agregadas</strong> de tu curso
+        @(Model.TieneCursosHijos ? " / de los cursos de tus hijos" : "")
+        , sin nombres ni identificadores personales, para proteger la privacidad.
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.RolActual))
+{
+    <p>
+        Rol actual: <strong>@Model.RolActual</strong>
+    </p>
+}
+
+@if (!string.IsNullOrEmpty(Model.MensajeInfo))
+{
+    <div class="alert alert-info">
+        @Model.MensajeInfo
+    </div>
+}
+
+<div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="post" id="form-filtros">
+            <input type="hidden" asp-for="Pagina" />
+            <input type="hidden" asp-for="TamanoPagina" />
+            <input type="hidden" asp-for="OrdenarPor" />
+            <input type="hidden" asp-for="DireccionOrden" />
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="PeriodoAcademicoId" class="form-label"></label>
+                    <select asp-for="PeriodoAcademicoId" asp-items="Model.Periodos" class="form-select">
+                        <option value="">-- Seleccione un periodo --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    @if (Model.EsVistaEstudianteOPadre && !Model.TieneCursosHijos)
+                    {
+                        <input type="hidden" asp-for="CursoId" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Curso</label>
+                            <input type="text"
+                                   class="form-control"
+                                   value="@Model.DescripcionCursoActual"
+                                   readonly />
+                            <span class="form-text">
+                                Las estadísticas se muestran solo para tu curso actual.
+                            </span>
+                        </div>
+                    }
+                    else if (Model.EsVistaEstudianteOPadre && Model.TieneCursosHijos)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Curso de mis hijos</label>
+                            <select asp-for="CursoId" class="form-select" asp-items="Model.CursosHijos">
+                                <option value="">-- Seleccione un curso --</option>
+                            </select>
+                            <span class="form-text">
+                                Solo se muestran cursos donde están inscritos tus hijos.
+                            </span>
+                            <span asp-validation-for="CursoId" class="text-danger"></span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label asp-for="CursoId" class="form-label"></label>
+                            <select asp-for="CursoId" class="form-select" asp-items="Model.Cursos">
+                                <option value="">-- Todos --</option>
+                            </select>
+                            <span asp-validation-for="CursoId" class="text-danger"></span>
+                        </div>
+                    }
+                </div>
+
+
+                <div class="col-md-4">
+                    <label asp-for="AsignaturaId" class="form-label"></label>
+                    <select asp-for="AsignaturaId" asp-items="Model.Asignaturas" class="form-select">
+                        <option value="">-- Todas las materias --</option>
+                    </select>
+                </div>
+
+                @if (Model.PuedeVerVistaGlobal)
+                {
+                    <div class="col-md-4">
+                        <label asp-for="DocenteId" class="form-label"></label>
+                        <select asp-for="DocenteId" asp-items="Model.Docentes" class="form-select">
+                            <option value="">-- Todos los docentes --</option>
+                        </select>
+                    </div>
+                }
+
+                <div class="col-md-4">
+                    <label asp-for="Nivel" class="form-label"></label>
+                    <input asp-for="Nivel" class="form-control" />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Paralelo" class="form-label"></label>
+                    <input asp-for="Paralelo" class="form-control" />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Turno" class="form-label"></label>
+                    <input asp-for="Turno" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="FechaInicio" class="form-label"></label>
+                    <input asp-for="FechaInicio" class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="FechaFin" class="form-label"></label>
+                    <input asp-for="FechaFin" class="form-control" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Tipos de indicador</label>
+                    <div class="d-flex flex-wrap">
+                        @foreach (var item in Model.TiposIndicadorDisponibles)
+                        {
+                            var id = $"tipo_{item.Value}";
+                            <div class="form-check me-3">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="@id"
+                                       name="TiposIndicadorSeleccionadosIds"
+                                       value="@item.Value"
+                                       @(Model.TiposIndicadorSeleccionadosIds.Contains(int.Parse(item.Value)) ? "checked" : "") />
+                                <label class="form-check-label" for="@id">
+                                    @item.Text
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button type="button"
+                        class="btn btn-primary"
+                        id="btnBuscarAjax"
+                        name="accion"
+                        value="buscar">
+                    Buscar
+                </button>
+            </div>
+        </form>
+        <br />
+        <div id="resultados-container">
+            @await Html.PartialAsync("_ResultadosEstadisticas", Model)
+        </div>
+    </div>
+</div>
+
+
+<div id="progreso-overlay"
+     class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-none"
+     style="z-index: 1050;">
+    <div class="d-flex justify-content-center align-items-center h-100">
+        <div class="bg-white p-4 rounded shadow text-center" style="min-width:280px;">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mb-3">Procesando consulta, por favor espere...</p>
+            <button type="button" id="btnCancelarConsulta" class="btn btn-outline-danger btn-sm">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (Model.HayDatosGraficos)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center mb-3">
+                <div class="me-3">
+                    <label class="form-label mb-0 me-2">Tipo de gráfico:</label>
+                    <select id="tipoGrafico" class="form-select form-select-sm d-inline-block" style="width:auto;">
+                        <option value="barras">Barras</option>
+                        <option value="lineas">Líneas</option>
+                        <option value="pastel">Pastel</option>
+                        <option value="boxplot">Boxplot</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label mb-0 me-2">Indicador:</label>
+                    <select id="tipoIndicadorGrafico" class="form-select form-select-sm d-inline-block" style="width:auto;">
+                        <option value="PromocionReprobacion">Promoción/Reprobación</option>
+                        <option value="Promedios">Promedios</option>
+                        <option value="Asistencia">Asistencia</option>
+                        <option value="Desercion">Deserción</option>
+                        <option value="RendimientoPorCurso">RendimientoPorCurso</option>
+                        <option value="RendimientoPorMateria">RendimientoPorMateria</option>
+                        <option value="RendimientoPorDocente">RendimientoPorDocente</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="chartMessage" class="text-muted mb-2"></div>
+            <canvas id="estadisticasChart" style="max-height:400px;"></canvas>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-box-and-violin-plot@4.3.0/build/chart-boxplot.min.js"></script>
+
+    <script>
+        (function () {
+            const form = document.getElementById('form-filtros') || document.querySelector('form#form-filtros');
+                    const overlay = document.getElementById('progreso-overlay');
+            const btnCancelar = document.getElementById('btnCancelarConsulta');
+            const resultadosContainer = document.getElementById('resultados-container');
+            const btnBuscar = document.getElementById('btnBuscarAjax'); 
+            let currentController = null;
+            let currentChart = null;
+
+            if (!form) return;
+
+            function mostrarOverlay(mostrar) {
+                if (!overlay) return;
+                overlay.classList.toggle('d-none', !mostrar);
+            }
+
+            function renderChart() {
+                const canvas = document.getElementById('estadisticasChart');
+                const msg = document.getElementById('chartMessage');
+                const rawTextarea = document.getElementById('indicadores-json');
+
+                if (!canvas || !rawTextarea) {
+                    if (currentChart) {
+                        currentChart.destroy();
+                        currentChart = null;
+                    }
+                    return;
+                }
+
+                let rawData;
+                try {
+                    rawData = JSON.parse(rawTextarea.value || '[]');
+                } catch {
+                    rawData = [];
+                }
+
+                if (!rawData || rawData.length === 0) {
+                    if (msg) msg.textContent = 'No hay datos suficientes para graficar.';
+                    if (currentChart) currentChart.destroy();
+                    currentChart = null;
+                    return;
+                }
+
+                const tipoGraficoSelect = document.getElementById('tipoGrafico');
+                const tipoIndicadorSelect = document.getElementById('tipoIndicadorGrafico');
+
+                const tipoGrafico = tipoGraficoSelect?.value || 'barras';
+                const tipoIndicador = tipoIndicadorSelect?.value || '';
+
+                const dataFiltrada = rawData.filter(x => x.Tipo === tipoIndicador);
+
+                if (dataFiltrada.length < 1) {
+                    if (msg) msg.textContent = 'No hay datos suficientes para el tipo de indicador seleccionado.';
+                    if (currentChart) currentChart.destroy();
+                    currentChart = null;
+                    return;
+                } else {
+                    if (msg) msg.textContent = '';
+                }
+
+                const labels = dataFiltrada.map(x => (x.Grupo || '') + (x.Detalle ? ' - ' + x.Detalle : ''));
+                const valores = dataFiltrada.map(x => x.Valor);
+
+                const ctx = canvas.getContext('2d');
+                if (currentChart) currentChart.destroy();
+
+                const chartType = tipoGrafico === 'lineas'
+                    ? 'line'
+                    : (tipoGrafico === 'pastel' ? 'pie' : 'bar');
+
+                currentChart = new Chart(ctx, {
+                    type: chartType,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: tipoIndicador,
+                            data: valores
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: chartType !== 'bar' || labels.length <= 10 },
+                            title: { display: true, text: 'Indicadores ' + tipoIndicador }
+                        },
+                        scales: (chartType === 'pie') ? {} : {
+                            x: { title: { display: true, text: 'Grupo' } },
+                            y: { title: { display: true, text: 'Valor' } }
+                        }
+                    }
+                });
+            }
+
+            function wireUpResultadosInteracciones() {
+                document.querySelectorAll('.page-link-nav').forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const page = this.dataset.page;
+                        if (!page) return;
+                        const pageInput = form.querySelector('input[name="Pagina"]');
+                        pageInput.value = page;
+                        ejecutarConsulta();
+                    });
+                });
+
+                document.querySelectorAll('.sort-link').forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const column = this.dataset.column;
+                        const sortInput = form.querySelector('input[name="OrdenarPor"]');
+                        const dirInput = form.querySelector('input[name="DireccionOrden"]');
+
+                        if (sortInput.value === column) {
+                            dirInput.value = dirInput.value === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            sortInput.value = column;
+                            dirInput.value = 'asc';
+                        }
+
+                        form.querySelector('input[name="Pagina"]').value = 1;
+                        ejecutarConsulta();
+                    });
+                });
+
+                const tipoGraficoSelect = document.getElementById('tipoGrafico');
+                const tipoIndicadorSelect = document.getElementById('tipoIndicadorGrafico');
+
+                if (tipoGraficoSelect) {
+                    tipoGraficoSelect.addEventListener('change', renderChart);
+                }
+                if (tipoIndicadorSelect) {
+                    tipoIndicadorSelect.addEventListener('change', renderChart);
+                }
+
+                renderChart();
+            }
+
+            function ejecutarConsulta() {
+                if (currentController) {
+                    currentController.abort();
+                }
+
+                currentController = new AbortController();
+                const fd = new FormData(form);
+
+                mostrarOverlay(true);
+
+                fetch('@Url.Action("Index", "Estadisticas")', {
+                    method: 'POST',
+                    body: fd,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: currentController.signal
+                })
+                .then(resp => {
+                    if (!resp.ok) {
+                        throw new Error('Error al ejecutar la consulta');
+                    }
+                    return resp.text();
+                })
+                .then(html => {
+                    resultadosContainer.innerHTML = html;
+                    wireUpResultadosInteracciones();
+                })
+                .catch(err => {
+                    if (err.name === 'AbortError') {
+                        console.log('Consulta cancelada por el usuario');
+                    } else {
+                        console.error(err);
+                        alert('Ocurrió un error al ejecutar la consulta.');
+                    }
+                })
+                .finally(() => {
+                    mostrarOverlay(false);
+                    currentController = null;
+                });
+            }
+
+            if (btnBuscar) {
+                btnBuscar.addEventListener('click', function (e) {
+                    const pageInput = form.querySelector('input[name="Pagina"]');
+                    if (pageInput) pageInput.value = 1;
+                    ejecutarConsulta();
+                });
+            }
+
+            const btnExportar = document.getElementById('btnExportarPdf');
+            if (btnExportar) {
+                btnExportar.addEventListener('click', function () {
+                    mostrarOverlay(true);
+                });
+            }
+
+            if (btnCancelar) {
+                btnCancelar.addEventListener('click', function () {
+                    if (currentController) {
+                        currentController.abort();
+                    }
+                    mostrarOverlay(false);
+                });
+            }
+
+            wireUpResultadosInteracciones();
+
+        })();
+    </script>
+}
+

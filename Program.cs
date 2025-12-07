@@ -2,6 +2,7 @@ using GestionLaboresAcademicas.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using GestionLaboresAcademicas.Services;
+using QuestPDF.Infrastructure;
 
 namespace GestionLaboresAcademicas
 {
@@ -10,11 +11,13 @@ namespace GestionLaboresAcademicas
         public static void Main(string[] args)
         {
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+            QuestPDF.Settings.License = LicenseType.Community;
 
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<ServicioGestionUsuarios>();
+            builder.Services.AddScoped<ServicioEstadisticas>();
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>

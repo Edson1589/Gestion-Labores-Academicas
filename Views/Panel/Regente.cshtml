@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "Panel del Regente";
+}
+
+<h2 class="mb-3">Panel del Regente</h2>
+<p class="text-muted">Bienvenido, @User.Identity?.Name</p>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card border-danger h-100">
+            <div class="card-header bg-danger text-white">Asistencia y disciplina</div>
+            <div class="card-body">
+                <p class="card-text">
+                    Acceder a las estadísticas de asistencia y deserción por curso, nivel y turno
+                    para apoyar la gestión de disciplina en la institución.
+                </p>
+                <a asp-controller="Estadisticas"
+                   asp-action="Index"
+                   class="btn btn-light">
+                    Ver estadísticas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

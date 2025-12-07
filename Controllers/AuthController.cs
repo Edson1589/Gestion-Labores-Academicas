@@ -147,27 +147,27 @@ namespace GestionLaboresAcademicas.Controllers
         public IActionResult RedirigirPorRol()
         {
             if (User.IsInRole("Director"))
-                return RedirectToAction("Director", "Dashboard");
+                return RedirectToAction("Director", "Panel");
 
             if (User.IsInRole("Secretaria"))
-                return RedirectToAction("Secretaria", "Dashboard");
+                return RedirectToAction("Secretaria", "Panel");
 
             if (User.IsInRole("Docente"))
-                return RedirectToAction("Docente", "Dashboard");
+                return RedirectToAction("Docente", "Panel");
 
             if (User.IsInRole("Estudiante"))
-                return RedirectToAction("Estudiante", "Dashboard");
+                return RedirectToAction("Estudiante", "Panel");
 
             if (User.IsInRole("Padre"))
-                return RedirectToAction("Padre", "Dashboard");
+                return RedirectToAction("Padre", "Panel");
 
             if (User.IsInRole("Regente"))
-                return RedirectToAction("Regente", "Dashboard");
+                return RedirectToAction("Regente", "Panel");
 
             if (User.IsInRole("Bibliotecario"))
-                return RedirectToAction("Bibliotecario", "Dashboard");
+                return RedirectToAction("Bibliotecario", "Panel");
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Panel");
         }
 
         [Authorize]

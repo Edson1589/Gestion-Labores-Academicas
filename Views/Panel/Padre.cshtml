@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Panel de Padre de Familia";
+}
+
+<h2 class="mb-3">Panel de Padre de Familia</h2>
+<p class="text-muted">Bienvenido, @User.Identity?.Name</p>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card border-info h-100">
+            <div class="card-header bg-info text-white">Progreso de mis hijos</div>
+            <div class="card-body">
+                <p class="card-text">
+                    Consultar estadísticas agregadas de los cursos donde están inscritos tus hijos:
+                    asistencia, promedios y promoción/reprobación, sin exponer datos personales
+                    de otros estudiantes.
+                </p>
+                <a asp-controller="Estadisticas"
+                   asp-action="Index"
+                   class="btn btn-light">
+                    Ver estadísticas de los cursos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
