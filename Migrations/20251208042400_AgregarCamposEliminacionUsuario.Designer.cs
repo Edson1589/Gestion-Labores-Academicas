@@ -3,6 +3,7 @@ using System;
 using GestionLaboresAcademicas.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GestionLaboresAcademicas.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251208042400_AgregarCamposEliminacionUsuario")]
+    partial class AgregarCamposEliminacionUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -253,56 +256,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.ToTable("BitacorasConsulta");
                 });
 
-            modelBuilder.Entity("GestionLaboresAcademicas.Models.HistorialEstadoUsuario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ActorId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("DireccionIP")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("EstadoAnterior")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<string>("EstadoNuevo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("FechaHora")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("Motivo")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("TipoCambio")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("UsuarioAfectadoId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActorId");
-
-                    b.HasIndex("UsuarioAfectadoId");
-
-                    b.ToTable("HistorialEstadosUsuarios");
-                });
-
             modelBuilder.Entity("GestionLaboresAcademicas.Models.PeriodoAcademico", b =>
                 {
                     b.Property<int>("Id")
@@ -415,10 +368,6 @@ namespace GestionLaboresAcademicas.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
-
-                    b.Property<string>("DireccionIP")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("FechaHora")
                         .HasColumnType("timestamp without time zone");
@@ -588,23 +537,11 @@ namespace GestionLaboresAcademicas.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime?>("BloqueadoHasta")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int?>("BloqueadoPor")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Correo")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("CursoId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("DesactivadoEl")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int?>("DesactivadoPor")
                         .HasColumnType("integer");
 
                     b.Property<string>("DocumentoCI")
@@ -632,14 +569,6 @@ namespace GestionLaboresAcademicas.Migrations
 
                     b.Property<string>("ItemDocente")
                         .HasColumnType("text");
-
-                    b.Property<string>("MotivoBloqueo")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("MotivoDesactivacion")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("MotivoEliminacion")
                         .HasMaxLength(500)
@@ -672,10 +601,6 @@ namespace GestionLaboresAcademicas.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TipoBloqueo")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<string>("TipoUsuario")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -683,14 +608,10 @@ namespace GestionLaboresAcademicas.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BloqueadoPor");
-
                     b.HasIndex("Correo")
                         .IsUnique();
 
                     b.HasIndex("CursoId");
-
-                    b.HasIndex("DesactivadoPor");
 
                     b.HasIndex("DocumentoCI")
                         .IsUnique();
@@ -888,24 +809,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("GestionLaboresAcademicas.Models.HistorialEstadoUsuario", b =>
-                {
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Actor")
-                        .WithMany()
-                        .HasForeignKey("ActorId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioAfectado")
-                        .WithMany("HistorialEstados")
-                        .HasForeignKey("UsuarioAfectadoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Actor");
-
-                    b.Navigation("UsuarioAfectado");
-                });
-
             modelBuilder.Entity("GestionLaboresAcademicas.Models.RegistroAuditoriaUsuario", b =>
                 {
                     b.HasOne("GestionLaboresAcademicas.Models.Usuario", "Actor")
@@ -952,19 +855,9 @@ namespace GestionLaboresAcademicas.Migrations
 
             modelBuilder.Entity("GestionLaboresAcademicas.Models.Usuario", b =>
                 {
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioBloqueador")
-                        .WithMany()
-                        .HasForeignKey("BloqueadoPor")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("GestionLaboresAcademicas.Models.Curso", "Curso")
                         .WithMany("Estudiantes")
                         .HasForeignKey("CursoId");
-
-                    b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioDesactivador")
-                        .WithMany()
-                        .HasForeignKey("DesactivadoPor")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("GestionLaboresAcademicas.Models.Usuario", "UsuarioEliminador")
                         .WithMany()
@@ -980,10 +873,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("Curso");
 
                     b.Navigation("Rol");
-
-                    b.Navigation("UsuarioBloqueador");
-
-                    b.Navigation("UsuarioDesactivador");
 
                     b.Navigation("UsuarioEliminador");
                 });
@@ -1029,8 +918,6 @@ namespace GestionLaboresAcademicas.Migrations
                     b.Navigation("AuditoriasComoAfectado");
 
                     b.Navigation("CredencialAcceso");
-
-                    b.Navigation("HistorialEstados");
 
                     b.Navigation("SolicitudesRol");
 

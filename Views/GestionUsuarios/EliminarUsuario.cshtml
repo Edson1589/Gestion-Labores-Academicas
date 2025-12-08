@@ -1,0 +1,224 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.EliminarUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Eliminar Usuario";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Encabezado con advertencia -->
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Eliminar Usuario - Confirmación Requerida
+                    </h4>
+                </div>
+                <div class="card-body">
+
+                    <!-- Información del usuario -->
+                    <div class="alert alert-warning mb-4">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-user-times me-2"></i>
+                            Usuario a eliminar
+                        </h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Nombre:</strong> @Model.NombreCompleto</p>
+                                <p class="mb-1"><strong>CI:</strong> @Model.DocumentoCI</p>
+                                <p class="mb-1"><strong>Tipo:</strong> <span class="badge bg-info">@Model.TipoUsuario</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Correo:</strong> @Model.Correo</p>
+                                <p class="mb-1"><strong>Estado:</strong> <span class="badge bg-secondary">@Model.EstadoCuenta</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje de operaciones críticas -->
+                    @if (Model.TieneOperacionesCriticas)
+                    {
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-ban me-2"></i>
+                                No se puede eliminar este usuario
+                            </h5>
+                            <hr>
+                            <p class="mb-0">@Model.MensajeOperacionesCriticas</p>
+                        </div>
+                    }
+
+                    <!-- Dependencias del usuario -->
+                    @if (Model.Dependencias.TieneDependencias)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-link me-2"></i>
+                                    Dependencias y vínculos del usuario
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Vínculos como padre -->
+                                    @if (Model.Dependencias.CantidadVinculosPadre > 0)
+                                    {
+                                        <div class="col-md-6 mb-3">
+                                            <h6><i class="fas fa-users me-2"></i>Estudiantes vinculados (@Model.Dependencias.CantidadVinculosPadre)</h6>
+                                            <ul class="list-group list-group-flush">
+                                                @foreach (var estudiante in Model.Dependencias.EstudiantesVinculados)
+                                                {
+                                                    <li class="list-group-item py-1 px-2">@estudiante</li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+
+                                    <!-- Asignaturas asignadas -->
+                                    @if (Model.Dependencias.CantidadAsignaturas > 0)
+                                    {
+                                        <div class="col-md-6 mb-3">
+                                            <h6><i class="fas fa-book me-2"></i>Asignaturas asignadas (@Model.Dependencias.CantidadAsignaturas)</h6>
+                                            <ul class="list-group list-group-flush">
+                                                @foreach (var asignatura in Model.Dependencias.AsignaturasAsignadas)
+                                                {
+                                                    <li class="list-group-item py-1 px-2">@asignatura</li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+
+                                    <!-- Curso asignado -->
+                                    @if (!string.IsNullOrEmpty(Model.Dependencias.CursoAsignado))
+                                    {
+                                        <div class="col-md-6 mb-3">
+                                            <h6><i class="fas fa-chalkboard me-2"></i>Curso asignado</h6>
+                                            <p class="mb-0"><span class="badge bg-primary">@Model.Dependencias.CursoAsignado</span></p>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <h6 class="mb-2"><i class="fas fa-database me-2"></i>Datos académicos registrados</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @if (Model.Dependencias.CantidadCalificaciones > 0)
+                                            {
+                                                <span class="badge bg-success">Calificaciones: @Model.Dependencias.CantidadCalificaciones</span>
+                                            }
+                                            @if (Model.Dependencias.CantidadAsistencias > 0)
+                                            {
+                                                <span class="badge bg-success">Asistencias: @Model.Dependencias.CantidadAsistencias</span>
+                                            }
+                                            @if (Model.Dependencias.CantidadMatriculas > 0)
+                                            {
+                                                <span class="badge bg-success">Matrículas: @Model.Dependencias.CantidadMatriculas</span>
+                                            }
+                                            @if (Model.Dependencias.CantidadPrestamos > 0)
+                                            {
+                                                <span class="badge bg-success">Préstamos: @Model.Dependencias.CantidadPrestamos</span>
+                                            }
+                                            @if (Model.Dependencias.CantidadSolicitudesRol > 0)
+                                            {
+                                                <span class="badge bg-success">Solicitudes: @Model.Dependencias.CantidadSolicitudesRol</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info mt-3 mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Nota:</strong> Al eliminar este usuario, se aplicará eliminación lógica (soft delete).
+                                    Los datos académicos se mantendrán para fines de auditoría y trazabilidad, pero el usuario
+                                    no podrá acceder al sistema y sus vínculos activos serán removidos.
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Formulario de confirmación -->
+                    @if (!Model.TieneOperacionesCriticas)
+                    {
+                        <form asp-action="ConfirmarEliminacion" method="post">
+                            <input type="hidden" asp-for="UsuarioId" />
+
+                            <div class="card border-warning mb-3">
+                                <div class="card-header bg-warning">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-shield-alt me-2"></i>
+                                        Confirmación de eliminación
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Motivo de eliminación -->
+                                    <div class="mb-3">
+                                        <label asp-for="MotivoEliminacion" class="form-label">
+                                            <strong>Motivo de eliminación</strong>
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <textarea asp-for="MotivoEliminacion"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  placeholder="Explique el motivo de la eliminación (mínimo 10 caracteres)"
+                                                  required></textarea>
+                                        <span asp-validation-for="MotivoEliminacion" class="text-danger"></span>
+                                    </div>
+
+                                    <!-- Texto de confirmación -->
+                                    <div class="mb-3">
+                                        <label asp-for="TextoConfirmacion" class="form-label">
+                                            <strong>Escriba "ELIMINAR" para confirmar</strong>
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <input asp-for="TextoConfirmacion"
+                                               class="form-control"
+                                               placeholder="Escriba ELIMINAR en mayúsculas"
+                                               required />
+                                        <span asp-validation-for="TextoConfirmacion" class="text-danger"></span>
+                                        <small class="form-text text-muted">
+                                            Por seguridad, debe escribir exactamente "ELIMINAR" (en mayúsculas) para confirmar esta acción.
+                                        </small>
+                                    </div>
+
+                                    <div class="alert alert-danger">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        <strong>Advertencia:</strong> Esta acción marcará al usuario como eliminado.
+                                        El usuario no podrá acceder al sistema y sus credenciales serán deshabilitadas permanentemente.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botones de acción -->
+                            <div class="d-flex justify-content-between">
+                                <a asp-action="Resumen" asp-route-id="@Model.UsuarioId" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash-alt me-2"></i>Confirmar Eliminación
+                                </button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- Botón de regreso cuando no se puede eliminar -->
+                        <div class="text-center">
+                            <a asp-action="Resumen" asp-route-id="@Model.UsuarioId" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver al resumen
+                            </a>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

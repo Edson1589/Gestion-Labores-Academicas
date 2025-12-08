@@ -1,21 +1,91 @@
 ﻿@model GestionLaboresAcademicas.Models.Usuario
-
 @{
     ViewData["Title"] = "Usuario registrado";
 }
 
-<h2>Usuario registrado correctamente</h2>
+<h2>Resumen del Usuario</h2>
 
 <div class="card mt-3">
     <div class="card-body">
         <h5 class="card-title">@Model.Nombres @Model.Apellidos</h5>
-        <p class="card-text">
-            <strong>Tipo de usuario:</strong> @Model.TipoUsuario <br />
-            <strong>Documento/CI:</strong> @Model.DocumentoCI <br />
-            <strong>Correo:</strong> @Model.Correo <br />
-            <strong>Teléfono:</strong> @Model.Telefono <br />
-            <strong>Estado de cuenta:</strong> @Model.EstadoCuenta
-        </p>
+        
+        @if (Model.Eliminado)
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Usuario eliminado</strong><br>
+                Este usuario fue eliminado el @Model.EliminadoEl?.ToString("dd/MM/yyyy HH:mm")<br>
+                Motivo: @Model.MotivoEliminacion
+            </div>
+        }
+        
+        <div class="row">
+            <div class="col-md-6">
+                <p class="card-text">
+                    <strong>Tipo de usuario:</strong> @Model.TipoUsuario <br />
+                    <strong>Documento/CI:</strong> @Model.DocumentoCI <br />
+                    <strong>Correo:</strong> @Model.Correo <br />
+                    <strong>Teléfono:</strong> @Model.Telefono <br />
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Estado de Cuenta:</strong></p>
+                @if (Model.Eliminado)
+                {
+                    <span class="badge bg-dark fs-6">
+                        <i class="fas fa-trash"></i> Eliminado
+                    </span>
+                }
+                else if (Model.EstadoCuenta == "Habilitado")
+                {
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-check-circle"></i> Habilitado
+                    </span>
+                }
+                else if (Model.EstadoCuenta == "Bloqueado")
+                {
+                    <span class="badge bg-danger fs-6">
+                        <i class="fas fa-lock"></i> Bloqueado
+                    </span>
+                    @if (Model.BloqueadoHasta.HasValue)
+                    {
+                        <p class="text-danger small mt-2">
+                            <strong>Tipo:</strong> @Model.TipoBloqueo<br />
+                            @if (Model.TipoBloqueo == "Temporal")
+                            {
+                                <strong>Hasta:</strong> @Model.BloqueadoHasta?.ToString("dd/MM/yyyy HH:mm")<br />
+                            }
+                            <strong>Motivo:</strong> @Model.MotivoBloqueo
+                        </p>
+                    }
+                }
+                else if (Model.EstadoCuenta == "Desactivado")
+                {
+                    <span class="badge bg-warning text-dark fs-6">
+                        <i class="fas fa-ban"></i> Desactivado
+                    </span>
+                    @if (Model.DesactivadoEl.HasValue)
+                    {
+                        <p class="text-warning small mt-2">
+                            <strong>Desactivado el:</strong> @Model.DesactivadoEl?.ToString("dd/MM/yyyy HH:mm")<br />
+                            <strong>Motivo:</strong> @Model.MotivoDesactivacion
+                        </p>
+                    }
+                }
+                else if (Model.EstadoCuenta == "Pendiente")
+                {
+                    <span class="badge bg-secondary fs-6">
+                        <i class="fas fa-clock"></i> Pendiente
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary fs-6">@Model.EstadoCuenta</span>
+                }
+            </div>
+        </div>
+
+        <hr />
 
         @if (Model.TipoUsuario == "Estudiante")
         {
@@ -35,7 +105,7 @@
                 }
             </p>
         }
-
+        
         @if (Model.TipoUsuario == "Padre")
         {
             <p>
@@ -62,13 +132,12 @@
                 }
             </p>
         }
-
+        
         @if (Model.TipoUsuario == "Docente")
         {
             <p>
                 <strong>Ítem / código interno:</strong> @Model.ItemDocente
             </p>
-
             <p>
                 <strong>Asignaturas:</strong>
                 @if (Model.Asignaturas != null && Model.Asignaturas.Any())
@@ -77,38 +146,103 @@
                         @foreach (var a in Model.Asignaturas)
                         {
                             <li>
-                                @a.Nombre @if (!string.IsNullOrEmpty(a.Area)) {
-                                @($"({a.Area})")
-                            }
-                        </li>
-                    }
-                </ul>
-            }
-            else if (Model.PendienteAsignarAsignaturas)
-            {
-                @:Pendiente de asignar materias
-            }
-            else
-            {
-                @:Sin asignaturas preasignadas
-            }
+                                @a.Nombre @if (!string.IsNullOrEmpty(a.Area))
+                                {
+                                    @($"({a.Area})")
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                else if (Model.PendienteAsignarAsignaturas)
+                {
+                    @:Pendiente de asignar materias
+                }
+                else
+                {
+                    @:Sin asignaturas preasignadas
+                }
             </p>
         }
+        
         @if (Model.CredencialAcceso != null)
-{
-        <p>
-            <strong>Usuario de acceso:</strong> @Model.CredencialAcceso.Username <br />
-            @if (ViewBag.PasswordTemporal != null)
-            {
-                <strong>Contraseña temporal:</strong> @ViewBag.PasswordTemporal <br />
-                <small class="text-muted">
-                    Esta contraseña es temporal; el sistema exigirá cambiarla en el primer inicio de sesión.
-                </small>
-            }
-        </p>
-}
+        {
+            <p>
+                <strong>Usuario de acceso:</strong> @Model.CredencialAcceso.Username <br />
+                @if (ViewBag.PasswordTemporal != null)
+                {
+                    <strong>Contraseña temporal:</strong> @ViewBag.PasswordTemporal <br />
+                    <small class="text-muted">
+                        Esta contraseña es temporal; el sistema exigirá cambiarla en el primer inicio de sesión.
+                    </small>
+                }
+            </p>
+        }
 
-        <a asp-action="Registrar" class="btn btn-primary">Registrar otro</a>
-        <a asp-action="Index" class="btn btn-secondary ms-2">Volver a gestión de usuarios</a>
+        <hr />
+
+        <!-- Sección de Acciones Disponibles -->
+        <h5 class="mb-3">
+            <i class="fas fa-cogs"></i> Acciones Disponibles
+        </h5>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="d-grid gap-2">
+                    @if (!Model.Eliminado)
+                    {
+                        <!-- Botones de gestión de estados -->
+                        @if (Model.EstadoCuenta == "Desactivado" || Model.EstadoCuenta == "Bloqueado")
+                        {
+                            <a asp-action="ActivarUsuario" asp-route-id="@Model.Id" class="btn btn-success">
+                                <i class="fas fa-user-check"></i> Activar Usuario
+                            </a>
+                        }
+
+                        @if (Model.EstadoCuenta == "Habilitado" || Model.EstadoCuenta == "Pendiente")
+                        {
+                            <a asp-action="DesactivarUsuario" asp-route-id="@Model.Id" class="btn btn-warning">
+                                <i class="fas fa-user-slash"></i> Desactivar Usuario
+                            </a>
+
+                            <a asp-action="BloquearUsuario" asp-route-id="@Model.Id" class="btn btn-danger">
+                                <i class="fas fa-user-lock"></i> Bloquear Usuario
+                            </a>
+                        }
+
+                        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Editar Información
+                        </a>
+
+                        <a asp-action="EliminarUsuario" asp-route-id="@Model.Id" class="btn btn-dark">
+                            <i class="fas fa-trash-alt"></i> Eliminar Usuario
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="d-grid gap-2">
+                    <!-- Historial de estados -->
+                    <a asp-action="HistorialEstados" asp-route-id="@Model.Id" class="btn btn-info">
+                        <i class="fas fa-history"></i> Ver Historial de Estados
+                    </a>
+
+                    <!-- Historial de auditoría -->
+                    <a asp-action="Historial" asp-route-id="@Model.Id" class="btn btn-secondary">
+                        <i class="fas fa-clipboard-list"></i> Ver Historial de Auditoría
+                    </a>
+
+                    <!-- Volver al índice -->
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Listado
+                    </a>
+
+                    <a asp-action="Registrar" class="btn btn-outline-primary">
+                        <i class="fas fa-user-plus"></i> Registrar Otro Usuario
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

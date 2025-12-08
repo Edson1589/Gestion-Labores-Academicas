@@ -1,0 +1,100 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.DesactivarUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Desactivar Usuario";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-slash"></i> Desactivar Usuario
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Información del usuario -->
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Usuario a desactivar</h5>
+                        <p class="mb-1"><strong>Nombre:</strong> @Model.NombreCompleto</p>
+                        <p class="mb-0">
+                            <strong>Estado actual:</strong>
+                            <span class="badge badge-success">@Model.EstadoActual</span>
+                        </p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle"></i> Advertencia
+                        </h5>
+                        <p class="mb-0">
+                            Al desactivar este usuario:
+                        </p>
+                        <ul class="mb-0">
+                            <li>El usuario NO podrá iniciar sesión en el sistema</li>
+                            <li>Todas las sesiones activas se cerrarán inmediatamente</li>
+                            <li>Las credenciales de acceso quedarán bloqueadas</li>
+                            <li>Los datos del usuario se mantendrán en el sistema</li>
+                            <li>El usuario podrá ser reactivado posteriormente</li>
+                        </ul>
+                    </div>
+
+                    @if (Model.CantidadSesionesActivas > 0)
+                    {
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-desktop"></i> Sesiones activas detectadas
+                            </h5>
+                            <p>El usuario tiene <strong>@Model.CantidadSesionesActivas</strong> sesión(es) activa(s) que serán cerradas:</p>
+                            <ul class="mb-0">
+                                @foreach (var sesion in Model.SesionesActivas)
+                                {
+                                    <li>@sesion.Dispositivo - @sesion.Navegador (IP: @sesion.DireccionIP)</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <form asp-action="ConfirmarDesactivacion" method="post">
+                        <input type="hidden" asp-for="UsuarioId" />
+                        <input type="hidden" asp-for="NombreCompleto" />
+                        <input type="hidden" asp-for="EstadoActual" />
+
+                        <div class="form-group">
+                            <label asp-for="MotivoDesactivacion" class="font-weight-bold">
+                                Motivo de la desactivación <span class="text-danger">*</span>
+                            </label>
+                            <textarea asp-for="MotivoDesactivacion"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Describe el motivo por el cual se desactiva este usuario (mínimo 10 caracteres)..."
+                                      required></textarea>
+                            <span asp-validation-for="MotivoDesactivacion" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Este motivo quedará registrado en el historial de cambios de estado del usuario.
+                            </small>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Resumen" asp-route-id="@Model.UsuarioId" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-check"></i> Confirmar Desactivación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

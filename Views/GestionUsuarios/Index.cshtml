@@ -5,103 +5,441 @@
     var termino = ViewBag.Termino as string;
 }
 
-<h2>Gestión de usuarios</h2>
+<style>
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        font-size: 14px;
+        margin-right: 8px;
+    }
 
-<div class="row mt-3">
-    <div class="col-md-4">
-        <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
-                Registrar nuevo usuario
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    Dar de alta Directores, Docentes, Estudiantes, Padres de familia, etc.
-                </p>
-                <a asp-action="Registrar" class="btn btn-primary">Registrar usuario</a>
-            </div>
-        </div>
-        <div class="card mb-3">
-            <div class="card-header bg-warning">
-                Carga masiva de usuarios
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    Importar muchos usuarios desde un archivo CSV al inicio de la gestión.
-                </p>
-                <a asp-action="CargaMasiva" class="btn btn-warning">
-                    Ir a carga masiva
-                </a>
-            </div>
+    .user-name-cell {
+        display: flex;
+        align-items: center;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+    .dropdown-menu {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: 1px solid #e0e0e0;
+    }
+
+    .dropdown-item {
+        padding: 10px 20px;
+        transition: all 0.2s;
+    }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            padding-left: 24px;
+        }
+
+        .dropdown-item i {
+            width: 20px;
+            margin-right: 8px;
+        }
+
+    .table-hover tbody tr {
+        transition: all 0.2s;
+    }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+    .badge {
+        padding: 6px 12px;
+        font-weight: 500;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+    }
+
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: none;
+    }
+
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+        font-weight: 600;
+        padding: 15px 20px;
+    }
+
+    .table {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+        .table thead th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #495057;
+            padding: 12px 15px;
+        }
+
+        .table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+    .status-badge-wrapper {
+        display: inline-block;
+    }
+
+    .search-box {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+
+        .search-box:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
+        }
+
+    .btn-search {
+        border-radius: 8px;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-0">
+                <i class="fas fa-users-cog text-primary"></i> Gestión de Usuarios
+            </h2>
+            <p class="text-muted mb-0">Administra los usuarios del sistema</p>
         </div>
     </div>
 
-    <div class="col-md-8">
-        <div class="card mb-3">
-            <div class="card-header">
-                Buscar usuarios
+    <div class="row g-4">
+        <!-- Panel izquierdo - Acciones rápidas -->
+        <div class="col-lg-3">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-user-plus"></i> Registrar nuevo usuario
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">
+                        Dar de alta Directores, Docentes, Estudiantes, Padres de familia, etc.
+                    </p>
+                    <a asp-action="Registrar" class="btn btn-primary w-100">
+                        <i class="fas fa-plus-circle"></i> Registrar usuario
+                    </a>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="get" class="row g-2">
-                    <div class="col-md-9">
-                        <input type="text"
-                               name="termino"
-                               value="@termino"
-                               class="form-control"
-                               placeholder="Buscar por nombre, CI o correo" />
-                    </div>
-                    <div class="col-md-3 d-grid">
-                        <button type="submit" class="btn btn-outline-secondary">Buscar</button>
-                    </div>
-                </form>
 
-                @if (Model != null && Model.Any())
-                {
-                    <div class="table-responsive mt-3">
-                        <table class="table table-sm table-bordered align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>CI</th>
-                                    <th>Correo</th>
-                                    <th>Tipo</th>
-                                    <th>Estado</th>
-                                    <th style="width: 140px;">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var u in Model)
-                                {
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-file-upload"></i> Carga masiva de usuarios
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">
+                        Importar muchos usuarios desde un archivo CSV al inicio de la gestión.
+                    </p>
+                    <a asp-action="CargaMasiva" class="btn btn-warning w-100">
+                        <i class="fas fa-upload"></i> Ir a carga masiva
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel derecho - Lista de usuarios -->
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <i class="fas fa-search"></i> Buscar usuarios
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3 mb-4">
+                        <div class="col-md-9">
+                            <input type="text"
+                                   name="termino"
+                                   value="@termino"
+                                   class="form-control form-control-lg search-box"
+                                   placeholder="🔍 Buscar por nombre, CI o correo..." />
+                        </div>
+                        <div class="col-md-3 d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg btn-search">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </form>
+
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
                                     <tr>
-                                        <td>@u.Nombres @u.Apellidos</td>
-                                        <td>@u.DocumentoCI</td>
-                                        <td>@u.Correo</td>
-                                        <td>@u.TipoUsuario</td>
-                                        <td>@u.EstadoCuenta</td>
-                                        <td>
-                                            <a asp-action="Editar" asp-route-id="@u.Id"
-                                               class="btn btn-sm btn-primary">Editar</a>
-                                            <a asp-action="Historial" asp-route-id="@u.Id"
-                                               class="btn btn-sm btn-outline-secondary ms-1">
-                                                Historial
-                                            </a>
-                                            <a asp-action="Resumen" asp-route-id="@u.Id"
-                                               class="btn btn-sm btn-outline-link ms-1">
-                                                Resumen
-                                            </a>
-                                        </td>
+                                        <th style="width: 250px;">Usuario</th>
+                                        <th style="width: 120px;">CI</th>
+                                        <th>Correo</th>
+                                        <th style="width: 100px;">Tipo</th>
+                                        <th style="width: 130px;">Estado</th>
+                                        <th style="width: 100px;" class="text-center">Acciones</th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-                else if (!string.IsNullOrWhiteSpace(termino))
-                {
-                    <div class="alert alert-info mt-3">
-                        No se encontraron usuarios para el criterio de búsqueda.
-                    </div>
-                }
+                                </thead>
+                                <tbody>
+                                    @foreach (var u in Model)
+                                    {
+                                        var avatarColor = u.TipoUsuario switch
+                                        {
+                                            "Director" => "#6f42c1",
+                                            "Secretaria" => "#0dcaf0",
+                                            "Docente" => "#198754",
+                                            "Estudiante" => "#0d6efd",
+                                            "Padre" => "#fd7e14",
+                                            "Regente" => "#d63384",
+                                            "Bibliotecario" => "#20c997",
+                                            _ => "#6c757d"
+                                        };
+
+                                        var initials = (u.Nombres.FirstOrDefault().ToString() + u.Apellidos.FirstOrDefault().ToString()).ToUpper();
+
+                                        <tr class="@(u.Eliminado ? "table-secondary" : "")">
+                                            <td>
+                                                <div class="user-name-cell">
+                                                    <div class="user-avatar" style="background-color: @avatarColor;">
+                                                        @initials
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold">@u.Nombres @u.Apellidos</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">@u.DocumentoCI</span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">@u.Correo</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge" style="background-color: @avatarColor;">
+                                                    @u.TipoUsuario
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="status-badge-wrapper">
+                                                    @if (u.Eliminado)
+                                                    {
+                                                        <span class="badge bg-dark">
+                                                            <i class="fas fa-trash"></i> Eliminado
+                                                        </span>
+                                                    }
+                                                    else if (u.EstadoCuenta == "Habilitado")
+                                                    {
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-check-circle"></i> Habilitado
+                                                        </span>
+                                                    }
+                                                    else if (u.EstadoCuenta == "Bloqueado")
+                                                    {
+                                                        <span class="badge bg-danger">
+                                                            <i class="fas fa-lock"></i> Bloqueado
+                                                        </span>
+                                                    }
+                                                    else if (u.EstadoCuenta == "Desactivado")
+                                                    {
+                                                        <span class="badge bg-warning text-dark">
+                                                            <i class="fas fa-ban"></i> Desactivado
+                                                        </span>
+                                                    }
+                                                    else if (u.EstadoCuenta == "Pendiente")
+                                                    {
+                                                        <span class="badge bg-secondary">
+                                                            <i class="fas fa-clock"></i> Pendiente
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">@u.EstadoCuenta</span>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (!u.Eliminado)
+                                                {
+                                                    <div class="btn-group" role="group">
+                                                        @if (u.EstadoCuenta == "Desactivado" || u.EstadoCuenta == "Bloqueado")
+                                                        {
+                                                            <!-- Acción principal: Activar -->
+                                                            <a asp-action="ActivarUsuario" asp-route-id="@u.Id"
+                                                               class="btn btn-sm btn-success">
+                                                                <i class="fas fa-check-circle"></i> Activar
+                                                            </a>
+                                                        }
+                                                        else if (u.EstadoCuenta == "Habilitado" || u.EstadoCuenta == "Pendiente")
+                                                        {
+                                                            <!-- Acción principal: Editar -->
+                                                            <a asp-action="Editar" asp-route-id="@u.Id"
+                                                               class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-edit"></i> Editar
+                                                            </a>
+                                                        }
+
+                                                        <!-- Dropdown con más acciones -->
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                                                                data-bs-toggle="dropdown"
+                                                                aria-expanded="false">
+                                                            <span class="visually-hidden">Más acciones</span>
+                                                        </button>
+
+                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                            <li>
+                                                                <a class="dropdown-item" asp-action="Resumen" asp-route-id="@u.Id">
+                                                                    <i class="fas fa-eye text-info"></i> Ver detalles
+                                                                </a>
+                                                            </li>
+
+                                                            @if (u.EstadoCuenta != "Desactivado" && u.EstadoCuenta != "Bloqueado")
+                                                            {
+                                                                <li>
+                                                                    <a class="dropdown-item" asp-action="Editar" asp-route-id="@u.Id">
+                                                                        <i class="fas fa-edit text-primary"></i> Editar información
+                                                                    </a>
+                                                                </li>
+                                                            }
+
+                                                            <li>
+                                                                <a class="dropdown-item" asp-action="Historial" asp-route-id="@u.Id">
+                                                                    <i class="fas fa-history text-secondary"></i> Ver historial
+                                                                </a>
+                                                            </li>
+
+                                                            <li><hr class="dropdown-divider my-1"></li>
+
+                                                            @if (u.EstadoCuenta == "Desactivado" || u.EstadoCuenta == "Bloqueado")
+                                                            {
+                                                                <li>
+                                                                    <a class="dropdown-item" asp-action="ActivarUsuario" asp-route-id="@u.Id">
+                                                                        <i class="fas fa-check-circle text-success"></i> Activar usuario
+                                                                    </a>
+                                                                </li>
+                                                            }
+
+                                                            @if (u.EstadoCuenta == "Habilitado" || u.EstadoCuenta == "Pendiente")
+                                                            {
+                                                                <li>
+                                                                    <a class="dropdown-item" asp-action="DesactivarUsuario" asp-route-id="@u.Id">
+                                                                        <i class="fas fa-ban text-warning"></i> Desactivar usuario
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item" asp-action="BloquearUsuario" asp-route-id="@u.Id">
+                                                                        <i class="fas fa-lock text-danger"></i> Bloquear usuario
+                                                                    </a>
+                                                                </li>
+                                                            }
+
+                                                            <li><hr class="dropdown-divider my-1"></li>
+
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" asp-action="EliminarUsuario" asp-route-id="@u.Id">
+                                                                    <i class="fas fa-trash-alt"></i> Eliminar usuario
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="btn-group" role="group">
+                                                        <a asp-action="Resumen" asp-route-id="@u.Id"
+                                                           class="btn btn-sm btn-secondary">
+                                                            <i class="fas fa-eye"></i> Ver
+                                                        </a>
+
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-secondary dropdown-toggle dropdown-toggle-split"
+                                                                data-bs-toggle="dropdown"
+                                                                aria-expanded="false">
+                                                            <span class="visually-hidden">Más acciones</span>
+                                                        </button>
+
+                                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                            <li>
+                                                                <a class="dropdown-item" asp-action="Historial" asp-route-id="@u.Id">
+                                                                    <i class="fas fa-history text-info"></i> Ver historial
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if (Model.Count() == 50)
+                        {
+                            <div class="alert alert-warning d-flex align-items-center mt-3" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <div>
+                                    Se muestran los primeros 50 resultados. Utiliza la búsqueda para refinar los resultados.
+                                </div>
+                            </div>
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(termino))
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No se encontraron usuarios</h5>
+                            <p class="text-muted">No hay resultados para "<strong>@termino</strong>"</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Busca usuarios</h5>
+                            <p class="text-muted">Utiliza el campo de búsqueda para encontrar usuarios</p>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Inicializar tooltips de Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    </script>
+}

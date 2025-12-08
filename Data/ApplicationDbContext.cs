@@ -27,6 +27,7 @@ namespace GestionLaboresAcademicas.Data
         public DbSet<PrestamoBiblioteca> PrestamosBiblioteca => Set<PrestamoBiblioteca>();
 
         public DbSet<BitacoraConsulta> BitacorasConsulta => Set<BitacoraConsulta>();
+        public DbSet<HistorialEstadoUsuario> HistorialEstadosUsuarios => Set<HistorialEstadoUsuario>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,10 +48,66 @@ namespace GestionLaboresAcademicas.Data
                 entity.Property(u => u.PendienteVinculoEstudiantes).HasDefaultValue(false);
                 entity.Property(u => u.PendienteAsignarAsignaturas).HasDefaultValue(false);
 
+                entity.Property(u => u.Eliminado).HasDefaultValue(false);
+                entity.Property(u => u.MotivoEliminacion).HasMaxLength(500);
+
+                entity.HasOne(u => u.UsuarioEliminador)
+                      .WithMany()
+                      .HasForeignKey(u => u.EliminadoPor)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // NUEVAS CONFIGURACIONES PARA BLOQUEO/DESACTIVACIÓN
+                entity.Property(u => u.TipoBloqueo).HasMaxLength(50);
+                entity.Property(u => u.MotivoBloqueo).HasMaxLength(500);
+                entity.Property(u => u.MotivoDesactivacion).HasMaxLength(500);
+
+                entity.HasOne(u => u.UsuarioBloqueador)
+                      .WithMany()
+                      .HasForeignKey(u => u.BloqueadoPor)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(u => u.UsuarioDesactivador)
+                      .WithMany()
+                      .HasForeignKey(u => u.DesactivadoPor)
+                      .OnDelete(DeleteBehavior.Restrict);
+
                 entity
                     .HasMany(u => u.Asignaturas)
                     .WithMany(a => a.Docentes)
                     .UsingEntity(j => j.ToTable("UsuarioAsignatura"));
+            });
+
+            // CONFIGURACIÓN PARA HISTORIAL DE ESTADOS
+            modelBuilder.Entity<HistorialEstadoUsuario>(entity =>
+            {
+                entity.Property(h => h.EstadoAnterior)
+                      .HasMaxLength(20)
+                      .IsRequired();
+
+                entity.Property(h => h.EstadoNuevo)
+                      .HasMaxLength(20)
+                      .IsRequired();
+
+                entity.Property(h => h.Motivo)
+                      .HasMaxLength(500)
+                      .IsRequired();
+
+                entity.Property(h => h.TipoCambio)
+                      .HasMaxLength(50)
+                      .IsRequired();
+
+                entity.Property(h => h.DireccionIP)
+                      .HasMaxLength(50);
+
+                entity.HasOne(h => h.UsuarioAfectado)
+                      .WithMany(u => u.HistorialEstados)
+                      .HasForeignKey(h => h.UsuarioAfectadoId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(h => h.Actor)
+                      .WithMany()
+                      .HasForeignKey(h => h.ActorId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Rol>(entity =>

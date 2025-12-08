@@ -1,0 +1,129 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.HistorialEstadosUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Historial de Estados";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-history"></i> Historial de Cambios de Estado
+            </h4>
+        </div>
+        <div class="card-body">
+            <!-- Información del usuario -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Usuario:</strong> @Model.NombreCompleto</p>
+                    <p class="mb-0"><strong>Tipo:</strong> @Model.TipoUsuario</p>
+                </div>
+                <div class="col-md-6 text-right">
+                    <p class="mb-1"><strong>Estado actual:</strong></p>
+                    <span class="badge badge-lg
+                        @(Model.EstadoActual == "Habilitado" ? "badge-success" :
+                                                    Model.EstadoActual == "Bloqueado" ? "badge-danger" :
+                                                    Model.EstadoActual == "Desactivado" ? "badge-warning" :
+                                                    "badge-secondary")">
+                        @Model.EstadoActual
+                    </span>
+                </div>
+            </div>
+
+            <hr />
+
+            @if (!Model.Registros.Any())
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No hay cambios de estado registrados para este usuario.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Fecha y Hora</th>
+                                <th>Cambio de Estado</th>
+                                <th>Actor</th>
+                                <th>Tipo</th>
+                                <th>Motivo</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var registro in Model.Registros)
+                            {
+                                <tr>
+                                    <td>
+                                        <i class="far fa-clock"></i>
+                                        @registro.FechaHora.ToString("dd/MM/yyyy HH:mm:ss")
+                                    </td>
+                                    <td>
+                                        <span class="badge
+                                                    @(registro.EstadoAnterior == "Habilitado" ? "badge-success" :
+                                                                                            registro.EstadoAnterior == "Bloqueado" ? "badge-danger" :
+                                                                                            registro.EstadoAnterior == "Desactivado" ? "badge-warning" :
+                                                                                            "badge-secondary")">
+                                            @registro.EstadoAnterior
+                                        </span>
+                                        <i class="fas fa-arrow-right"></i>
+                                        <span class="badge
+                                                    @(registro.EstadoNuevo == "Habilitado" ? "badge-success" :
+                                                                                            registro.EstadoNuevo == "Bloqueado" ? "badge-danger" :
+                                                                                            registro.EstadoNuevo == "Desactivado" ? "badge-warning" :
+                                                                                            "badge-secondary")">
+                                            @registro.EstadoNuevo
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (registro.Actor != null)
+                                        {
+                                            <i class="fas fa-user"></i> 
+                                            @registro.Actor.Nombres @registro.Actor.Apellidos
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                <i class="fas fa-robot"></i> Sistema
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (registro.TipoCambio == "Manual")
+                                        {
+                                            <span class="badge badge-primary">
+                                                <i class="fas fa-user-cog"></i> Manual
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-info">
+                                                <i class="fas fa-robot"></i> Automático
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small>@registro.Motivo</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@registro.DireccionIP</small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <hr />
+
+            <div class="text-center">
+                <a asp-action="Resumen" asp-route-id="@Model.UsuarioId" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Resumen
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,107 @@
+﻿@model GestionLaboresAcademicas.Models.ViewModels.ActivarUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Activar Usuario";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-check"></i> Activar Usuario
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Información del usuario -->
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Usuario a activar</h5>
+                        <p class="mb-1"><strong>Nombre:</strong> @Model.NombreCompleto</p>
+                        <p class="mb-0">
+                            <strong>Estado actual:</strong>
+                            <span class="badge badge-warning">@Model.EstadoActual</span>
+                        </p>
+                    </div>
+
+                    @if (!Model.CumpleRequisitos)
+                    {
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle"></i> No se puede activar este usuario
+                            </h5>
+                            <p>El usuario no cumple con los requisitos necesarios para ser activado:</p>
+                            <ul class="mb-0">
+                                @foreach (var requisito in Model.RequisitosPendientes)
+                                {
+                                    <li>@requisito</li>
+                                }
+                            </ul>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <a asp-action="Resumen" asp-route-id="@Model.UsuarioId" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver al Resumen
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-info-circle"></i> Información importante
+                            </h5>
+                            <p class="mb-0">
+                                Al activar este usuario:
+                            </p>
+                            <ul class="mb-0">
+                                <li>El usuario podrá iniciar sesión en el sistema</li>
+                                <li>Se limpiarán todos los bloqueos anteriores</li>
+                                <li>Se restablecerán las credenciales de acceso</li>
+                                <li>El estado cambiará a "Habilitado"</li>
+                            </ul>
+                        </div>
+
+                        <form asp-action="ConfirmarActivacion" method="post">
+                            <input type="hidden" asp-for="UsuarioId" />
+                            <input type="hidden" asp-for="NombreCompleto" />
+                            <input type="hidden" asp-for="EstadoActual" />
+
+                            <div class="form-group">
+                                <label asp-for="MotivoActivacion" class="font-weight-bold">
+                                    Motivo de la activación <span class="text-danger">*</span>
+                                </label>
+                                <textarea asp-for="MotivoActivacion"
+                                          class="form-control"
+                                          rows="4"
+                                          placeholder="Describe el motivo por el cual se activa este usuario (mínimo 10 caracteres)..."
+                                          required></textarea>
+                                <span asp-validation-for="MotivoActivacion" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Este motivo quedará registrado en el historial de cambios de estado del usuario.
+                                </small>
+                            </div>
+
+                            <hr />
+
+                            <div class="d-flex justify-content-between">
+                                <a asp-action="Resumen" asp-route-id="@Model.UsuarioId" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> Confirmar Activación
+                                </button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

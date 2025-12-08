@@ -588,6 +588,550 @@ namespace GestionLaboresAcademicas.Controllers
             return View(usuario);
         }
 
+        // ==========================================
+        // MÉTODOS PARA ELIMINACIÓN DE USUARIOS (CU5)
+        // ==========================================
+
+        [HttpGet]
+        public async Task<IActionResult> EliminarUsuario(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (usuario == null)
+                return NotFound();
+
+            if (usuario.Eliminado)
+            {
+                TempData["Error"] = "Este usuario ya ha sido eliminado previamente.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var (puedeEliminar, mensajeError) = await _servicioGestionUsuarios.ValidarEliminacionUsuarioAsync(id);
+            var dependencias = await _servicioGestionUsuarios.ObtenerDependenciasUsuarioAsync(id);
+
+            var model = new EliminarUsuarioViewModel
+            {
+                UsuarioId = usuario.Id,
+                NombreCompleto = $"{usuario.Nombres} {usuario.Apellidos}",
+                DocumentoCI = usuario.DocumentoCI,
+                TipoUsuario = usuario.TipoUsuario,
+                Correo = usuario.Correo,
+                EstadoCuenta = usuario.EstadoCuenta,
+                Dependencias = dependencias,
+                TieneOperacionesCriticas = !puedeEliminar,
+                MensajeOperacionesCriticas = mensajeError ?? string.Empty
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmarEliminacion(EliminarUsuarioViewModel model)
+        {
+            var usuario = await _context.Usuarios.FindAsync(model.UsuarioId);
+
+            if (usuario == null)
+                return NotFound();
+
+            var textoEsperado = "ELIMINAR";
+            if (model.TextoConfirmacion?.Trim().ToUpper() != textoEsperado)
+            {
+                ModelState.AddModelError(nameof(model.TextoConfirmacion),
+                    $"Debe escribir exactamente '{textoEsperado}' para confirmar.");
+
+                model.Dependencias = await _servicioGestionUsuarios.ObtenerDependenciasUsuarioAsync(model.UsuarioId);
+                model.NombreCompleto = $"{usuario.Nombres} {usuario.Apellidos}";
+                model.DocumentoCI = usuario.DocumentoCI;
+                model.TipoUsuario = usuario.TipoUsuario;
+                model.Correo = usuario.Correo;
+                model.EstadoCuenta = usuario.EstadoCuenta;
+
+                return View("EliminarUsuario", model);
+            }
+
+            if (string.IsNullOrWhiteSpace(model.MotivoEliminacion) || model.MotivoEliminacion.Length < 10)
+            {
+                ModelState.AddModelError(nameof(model.MotivoEliminacion),
+                    "Debe proporcionar un motivo de al menos 10 caracteres.");
+
+                model.Dependencias = await _servicioGestionUsuarios.ObtenerDependenciasUsuarioAsync(model.UsuarioId);
+                model.NombreCompleto = $"{usuario.Nombres} {usuario.Apellidos}";
+                model.DocumentoCI = usuario.DocumentoCI;
+                model.TipoUsuario = usuario.TipoUsuario;
+                model.Correo = usuario.Correo;
+                model.EstadoCuenta = usuario.EstadoCuenta;
+
+                return View("EliminarUsuario", model);
+            }
+
+            var (puedeEliminar, mensajeError) = await _servicioGestionUsuarios.ValidarEliminacionUsuarioAsync(model.UsuarioId);
+
+            if (!puedeEliminar)
+            {
+                TempData["Error"] = $"No se puede eliminar el usuario: {mensajeError}";
+                return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+            }
+
+            var actorId = ObtenerUsuarioActualId();
+
+            try
+            {
+                var eliminado = await _servicioGestionUsuarios.EjecutarEliminacionUsuarioAsync(
+                    model.UsuarioId,
+                    actorId,
+                    model.MotivoEliminacion);
+
+                if (eliminado)
+                {
+                    await RegistrarAuditoriaEliminacion(usuario, actorId, model.MotivoEliminacion);
+
+                    TempData["Success"] = $"Usuario {usuario.Nombres} {usuario.Apellidos} eliminado correctamente.";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["Error"] = "Ocurrió un error al eliminar el usuario.";
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al eliminar el usuario: {ex.Message}";
+                return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+            }
+        }
+
+        // ==========================================
+        // ACCIONES PARA GESTIÓN DE ESTADOS (CU6)
+        // ==========================================
+
+        [HttpGet]
+        public async Task<IActionResult> ActivarUsuario(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.CredencialAcceso)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (usuario == null)
+            {
+                TempData["Error"] = "Usuario no encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var (puedeTransicionar, mensajeError) = await _servicioGestionUsuarios
+                .ValidarTransicionEstadoAsync(id, "Habilitado");
+
+            if (!puedeTransicionar)
+            {
+                TempData["Error"] = mensajeError;
+                return RedirectToAction(nameof(Resumen), new { id });
+            }
+
+            var viewModel = new ActivarUsuarioViewModel
+            {
+                UsuarioId = usuario.Id,
+                NombreCompleto = $"{usuario.Nombres} {usuario.Apellidos}",
+                EstadoActual = usuario.EstadoCuenta,
+                CumpleRequisitos = true,
+                RequisitosPendientes = new List<string>()
+            };
+
+            if (usuario.CredencialAcceso == null)
+            {
+                viewModel.CumpleRequisitos = false;
+                viewModel.RequisitosPendientes.Add("El usuario debe tener credenciales de acceso configuradas");
+            }
+
+            if (usuario.Eliminado)
+            {
+                viewModel.CumpleRequisitos = false;
+                viewModel.RequisitosPendientes.Add("El usuario está eliminado y no puede ser activado");
+            }
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmarActivacion(ActivarUsuarioViewModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model.MotivoActivacion) || model.MotivoActivacion.Length < 10)
+            {
+                ModelState.AddModelError("MotivoActivacion", "El motivo debe tener al menos 10 caracteres.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("ActivarUsuario", model);
+            }
+
+            try
+            {
+                var actorId = ObtenerUsuarioActualId();
+
+                var (puedeTransicionar, mensajeError) = await _servicioGestionUsuarios
+                    .ValidarTransicionEstadoAsync(model.UsuarioId, "Habilitado");
+
+                if (!puedeTransicionar)
+                {
+                    TempData["Error"] = mensajeError;
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+
+                var resultado = await _servicioGestionUsuarios.ActivarUsuarioAsync(
+                    model.UsuarioId,
+                    actorId,
+                    model.MotivoActivacion);
+
+                if (resultado)
+                {
+                    await RegistrarAuditoriaEstado(model.UsuarioId, actorId, "Activar", model.MotivoActivacion);
+
+                    TempData["Exito"] = "Usuario activado exitosamente.";
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+                else
+                {
+                    TempData["Error"] = "No se pudo activar el usuario.";
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al activar usuario: {ex.Message}";
+                return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DesactivarUsuario(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.CredencialAcceso)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (usuario == null)
+            {
+                TempData["Error"] = "Usuario no encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var (puedeTransicionar, mensajeError) = await _servicioGestionUsuarios
+                .ValidarTransicionEstadoAsync(id, "Desactivado");
+
+            if (!puedeTransicionar)
+            {
+                TempData["Error"] = mensajeError;
+                return RedirectToAction(nameof(Resumen), new { id });
+            }
+
+            var viewModel = new DesactivarUsuarioViewModel
+            {
+                UsuarioId = usuario.Id,
+                NombreCompleto = $"{usuario.Nombres} {usuario.Apellidos}",
+                EstadoActual = usuario.EstadoCuenta,
+                CantidadSesionesActivas = 0,
+                SesionesActivas = new List<SesionActivaDto>()
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmarDesactivacion(DesactivarUsuarioViewModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model.MotivoDesactivacion) || model.MotivoDesactivacion.Length < 10)
+            {
+                ModelState.AddModelError("MotivoDesactivacion", "El motivo debe tener al menos 10 caracteres.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("DesactivarUsuario", model);
+            }
+
+            try
+            {
+                var actorId = ObtenerUsuarioActualId();
+
+                var (puedeTransicionar, mensajeError) = await _servicioGestionUsuarios
+                    .ValidarTransicionEstadoAsync(model.UsuarioId, "Desactivado");
+
+                if (!puedeTransicionar)
+                {
+                    TempData["Error"] = mensajeError;
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+
+                var resultado = await _servicioGestionUsuarios.DesactivarUsuarioAsync(
+                    model.UsuarioId,
+                    actorId,
+                    model.MotivoDesactivacion);
+
+                if (resultado)
+                {
+                    await RegistrarAuditoriaEstado(model.UsuarioId, actorId, "Desactivar", model.MotivoDesactivacion);
+
+                    TempData["Exito"] = "Usuario desactivado exitosamente. Todas sus sesiones han sido cerradas.";
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+                else
+                {
+                    TempData["Error"] = "No se pudo desactivar el usuario.";
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al desactivar usuario: {ex.Message}";
+                return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> BloquearUsuario(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.CredencialAcceso)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (usuario == null)
+            {
+                TempData["Error"] = "Usuario no encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var (puedeTransicionar, mensajeError) = await _servicioGestionUsuarios
+                .ValidarTransicionEstadoAsync(id, "Bloqueado");
+
+            if (!puedeTransicionar)
+            {
+                TempData["Error"] = mensajeError;
+                return RedirectToAction(nameof(Resumen), new { id });
+            }
+
+            var viewModel = new BloquearUsuarioViewModel
+            {
+                UsuarioId = usuario.Id,
+                NombreCompleto = $"{usuario.Nombres} {usuario.Apellidos}",
+                EstadoActual = usuario.EstadoCuenta,
+                TipoBloqueo = "Temporal",
+                CantidadSesionesActivas = 0,
+                SesionesActivas = new List<SesionActivaDto>()
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmarBloqueo(BloquearUsuarioViewModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model.MotivoBloqueo) || model.MotivoBloqueo.Length < 10)
+            {
+                ModelState.AddModelError("MotivoBloqueo", "El motivo debe tener al menos 10 caracteres.");
+            }
+
+            if (model.TipoBloqueo == "Temporal")
+            {
+                if (!model.DuracionMinutos.HasValue && !model.DuracionHoras.HasValue && !model.DuracionDias.HasValue)
+                {
+                    ModelState.AddModelError("", "Debe especificar una duración para el bloqueo temporal.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("BloquearUsuario", model);
+            }
+
+            try
+            {
+                var actorId = ObtenerUsuarioActualId();
+
+                var (puedeTransicionar, mensajeError) = await _servicioGestionUsuarios
+                    .ValidarTransicionEstadoAsync(model.UsuarioId, "Bloqueado");
+
+                if (!puedeTransicionar)
+                {
+                    TempData["Error"] = mensajeError;
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+
+                int? duracionMinutos = null;
+                if (model.TipoBloqueo == "Temporal")
+                {
+                    duracionMinutos = (model.DuracionMinutos ?? 0) +
+                                    (model.DuracionHoras ?? 0) * 60 +
+                                    (model.DuracionDias ?? 0) * 1440;
+                }
+
+                var resultado = await _servicioGestionUsuarios.BloquearUsuarioAsync(
+                    model.UsuarioId,
+                    actorId,
+                    model.MotivoBloqueo,
+                    model.TipoBloqueo,
+                    duracionMinutos);
+
+                if (resultado)
+                {
+                    await RegistrarAuditoriaEstado(model.UsuarioId, actorId, "Bloquear", model.MotivoBloqueo);
+
+                    var mensaje = model.TipoBloqueo == "Temporal"
+                        ? $"Usuario bloqueado temporalmente por {duracionMinutos} minutos. Todas sus sesiones han sido cerradas."
+                        : "Usuario bloqueado permanentemente. Todas sus sesiones han sido cerradas.";
+
+                    TempData["Exito"] = mensaje;
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+                else
+                {
+                    TempData["Error"] = "No se pudo bloquear el usuario.";
+                    return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al bloquear usuario: {ex.Message}";
+                return RedirectToAction(nameof(Resumen), new { id = model.UsuarioId });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> HistorialEstados(int id)
+        {
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (usuario == null)
+            {
+                TempData["Error"] = "Usuario no encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var historial = await _servicioGestionUsuarios.ObtenerHistorialEstadosAsync(id);
+
+            var viewModel = new HistorialEstadosUsuarioViewModel
+            {
+                UsuarioId = usuario.Id,
+                NombreCompleto = $"{usuario.Nombres} {usuario.Apellidos}",
+                TipoUsuario = usuario.TipoUsuario,
+                EstadoActual = usuario.EstadoCuenta,
+                Registros = historial
+            };
+
+            return View(viewModel);
+        }
+
+        // ==========================================
+        // MÉTODOS AUXILIARES PRIVADOS
+        // ==========================================
+
+        private int ObtenerUsuarioActualId()
+        {
+            var actorIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(actorIdString, out var actorId))
+            {
+                throw new InvalidOperationException("No se pudo obtener el ID del usuario actual.");
+            }
+            return actorId;
+        }
+
+        private async Task RegistrarAuditoriaEstado(int usuarioId, int actorId, string accion, string motivo)
+        {
+            var usuario = await _context.Usuarios.FindAsync(usuarioId);
+            if (usuario == null) return;
+
+            var registro = new RegistroAuditoriaUsuario
+            {
+                UsuarioAfectadoId = usuarioId,
+                ActorId = actorId,
+                Accion = accion,
+                Detalle = $"{accion} usuario: {usuario.Nombres} {usuario.Apellidos}. Motivo: {motivo}",
+                DireccionIP = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Desconocida",
+                FechaHora = DateTime.UtcNow,
+                Origen = $"GestionUsuarios/{accion}Usuario"
+            };
+
+            _context.RegistrosAuditoriaUsuarios.Add(registro);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task RegistrarAuditoriaEliminacion(Usuario usuario, int actorId, string motivo)
+        {
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "N/A";
+
+            var registro = new RegistroAuditoriaUsuario
+            {
+                UsuarioAfectadoId = usuario.Id,
+                ActorId = actorId,
+                FechaHora = DateTime.UtcNow,
+                Accion = "Eliminar",
+                Detalle = $"Usuario {usuario.Nombres} {usuario.Apellidos} ({usuario.TipoUsuario}) eliminado. Motivo: {motivo}",
+                DireccionIP = ip,
+                Origen = "GestionUsuarios/EliminarUsuario"
+            };
+
+            _context.RegistrosAuditoriaUsuarios.Add(registro);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task RegistrarAuditoriaCreacion(Usuario usuarioCreado)
+        {
+            var actorIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int? actorId = null;
+            if (int.TryParse(actorIdString, out var parsed))
+            {
+                actorId = parsed;
+            }
+
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "N/A";
+
+            var registro = new RegistroAuditoriaUsuario
+            {
+                UsuarioAfectadoId = usuarioCreado.Id,
+                ActorId = actorId,
+                FechaHora = DateTime.UtcNow,
+                Accion = "Registrar",
+                Detalle = $"Usuario {usuarioCreado.Nombres} {usuarioCreado.Apellidos} ({usuarioCreado.TipoUsuario}) creado.",
+                DireccionIP = ip,
+                Origen = "GestionUsuarios/Registrar"
+            };
+
+            _context.RegistrosAuditoriaUsuarios.Add(registro);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task RegistrarAuditoriaEdicion(Usuario usuario, IEnumerable<string> cambios)
+        {
+            var actorIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int? actorId = null;
+            if (int.TryParse(actorIdString, out var parsed))
+                actorId = parsed;
+
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "N/A";
+
+            var detalle = "Cambios aplicados: " + string.Join("; ", cambios);
+
+            var registro = new RegistroAuditoriaUsuario
+            {
+                UsuarioAfectadoId = usuario.Id,
+                ActorId = actorId,
+                FechaHora = DateTime.UtcNow,
+                Accion = "Editar",
+                Detalle = detalle,
+                DireccionIP = ip,
+                Origen = "GestionUsuarios/Editar"
+            };
+
+            _context.RegistrosAuditoriaUsuarios.Add(registro);
+            await _context.SaveChangesAsync();
+        }
+
         private List<SelectListItem> ObtenerTiposUsuario()
         {
             return _context.Roles
@@ -647,31 +1191,6 @@ namespace GestionLaboresAcademicas.Controllers
             return lista;
         }
 
-        private async Task RegistrarAuditoriaCreacion(Usuario usuarioCreado)
-        {
-            var actorIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int? actorId = null;
-            if (int.TryParse(actorIdString, out var parsed))
-            {
-                actorId = parsed;
-            }
-
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "N/A";
-
-            var registro = new RegistroAuditoriaUsuario
-            {
-                UsuarioAfectadoId = usuarioCreado.Id,
-                ActorId = actorId,
-                FechaHora = DateTime.UtcNow,
-                Accion = "Registrar",
-                Detalle = $"Usuario {usuarioCreado.Nombres} {usuarioCreado.Apellidos} ({usuarioCreado.TipoUsuario}) creado. IP: {ip}",
-                Origen = "GestionUsuarios/Registrar"
-            };
-
-            _context.RegistrosAuditoriaUsuarios.Add(registro);
-            await _context.SaveChangesAsync();
-        }
-
         private async Task CargarEstudiantesDisponiblesAsync(RegistrarUsuarioViewModel model)
         {
             var query = _context.Usuarios
@@ -722,31 +1241,6 @@ namespace GestionLaboresAcademicas.Controllers
                         : $"{a.Nombre} ({a.Area})"
                 })
                 .ToList();
-        }
-
-        private async Task RegistrarAuditoriaEdicion(Usuario usuario, IEnumerable<string> cambios)
-        {
-            var actorIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            int? actorId = null;
-            if (int.TryParse(actorIdString, out var parsed))
-                actorId = parsed;
-
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "N/A";
-
-            var detalle = "Cambios aplicados: " + string.Join("; ", cambios) + $". IP: {ip}";
-
-            var registro = new RegistroAuditoriaUsuario
-            {
-                UsuarioAfectadoId = usuario.Id,
-                ActorId = actorId,
-                FechaHora = DateTime.UtcNow,
-                Accion = "Editar",
-                Detalle = detalle,
-                Origen = "GestionUsuarios/Editar"
-            };
-
-            _context.RegistrosAuditoriaUsuarios.Add(registro);
-            await _context.SaveChangesAsync();
         }
 
         [Authorize(Roles = "Secretaria,Director")]
@@ -901,9 +1395,9 @@ namespace GestionLaboresAcademicas.Controllers
 
                 var tiposValidos = new[]
                 {
-            "Director", "Secretaria", "Docente", "Estudiante",
-            "Padre", "Regente", "Bibliotecario"
-        };
+                    "Director", "Secretaria", "Docente", "Estudiante",
+                    "Padre", "Regente", "Bibliotecario"
+                };
 
                 if (!tiposValidos.Contains(tipoUsuario))
                     errores.Add($"TipoUsuario '{tipoUsuario}' no es válido.");
@@ -983,7 +1477,6 @@ namespace GestionLaboresAcademicas.Controllers
 
             return (validos, resultados);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -1223,6 +1716,7 @@ namespace GestionLaboresAcademicas.Controllers
             return (usuario, null);
         }
     }
+
     public class UsuarioImportDto
     {
         public int NumeroLinea { get; set; }
@@ -1240,5 +1734,4 @@ namespace GestionLaboresAcademicas.Controllers
         public string? ItemDocente { get; set; }
         public List<int> AsignaturasIds { get; set; } = new();
     }
-
 }
